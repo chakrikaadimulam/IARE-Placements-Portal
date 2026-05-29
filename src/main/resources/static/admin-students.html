@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Students | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-students.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Manage student records and login access</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-students" class="active">Manage Students</a>
+                <a href="/admin-companies">Manage Companies</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+                <a href="/admin-placement-statistics">Placement Statistics</a>
+                <a href="/admin-selected-students">Selected Students</a>
+                <a href="/admin-interview-experiences">Interview Experiences</a>
+                <a href="/admin-preparation-resources">Preparation Resources</a>
+                <a href="/admin-notices">Notices</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Student Management</p>
+                <h1>Upload, review, and maintain student profiles</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="student-admin-layout">
+            <article class="upload-card">
+                <div class="section-head">
+                    <span class="card-tag">Excel Upload</span>
+                    <h2>Import student list from Excel</h2>
+                    <p>Upload `.xlsx` or `.xls` files. Existing roll numbers will be updated, new roll numbers will be inserted.</p>
+                </div>
+
+                <form id="studentUploadForm" class="upload-form" novalidate>
+                    <label for="studentExcelFile">Student Excel File</label>
+                    <input id="studentExcelFile" name="file" type="file" accept=".xlsx,.xls" required>
+                    <p id="studentUploadFileName" class="upload-file-name">No file selected</p>
+                    <p id="studentUploadError" class="error-message" aria-live="polite"></p>
+                    <button id="studentUploadButton" type="submit" class="primary-btn">Upload Students</button>
+                </form>
+
+                <div id="studentUploadSummary" class="upload-summary hidden">
+                    <h3>Upload Summary</h3>
+                    <div class="summary-grid">
+                        <div><span>Total Rows</span><strong id="summaryTotalRows">0</strong></div>
+                        <div><span>Inserted</span><strong id="summaryInserted">0</strong></div>
+                        <div><span>Updated</span><strong id="summaryUpdated">0</strong></div>
+                        <div><span>Skipped</span><strong id="summarySkipped">0</strong></div>
+                    </div>
+                    <div>
+                        <h4>Errors</h4>
+                        <ul id="studentUploadErrors" class="error-list"></ul>
+                    </div>
+                </div>
+            </article>
+
+            <article class="student-list-card">
+                <div class="section-head">
+                    <span class="card-tag">Directory</span>
+                    <h2>Student records</h2>
+                    <p>Filter by profile details, inspect records, and control account access.</p>
+                </div>
+
+                <section class="filter-grid">
+                    <input id="studentSearchInput" type="text" placeholder="Search by name, roll no, or email">
+                    <select id="studentBranchFilter">
+                        <option value="">All Branches</option>
+                    </select>
+                    <select id="studentSemesterFilter">
+                        <option value="">All Semesters</option>
+                    </select>
+                    <select id="studentSectionFilter">
+                        <option value="">All Sections</option>
+                    </select>
+                    <select id="studentGenderFilter">
+                        <option value="">All Genders</option>
+                    </select>
+                    <select id="studentStatusFilter">
+                        <option value="">All Statuses</option>
+                    </select>
+                </section>
+
+                <div id="studentListLoading" class="loading-state">Loading student records...</div>
+                <div id="studentList" class="student-list-grid"></div>
+                <div id="studentListEmpty" class="resource-empty-state hidden">No students found for the current filters.</div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div id="studentDetailsModal" class="details-modal hidden">
+    <div class="details-backdrop" data-close-student-modal="true"></div>
+    <div class="details-dialog">
+        <button id="closeStudentDetailsButton" class="modal-close-btn" type="button">Close</button>
+        <div id="studentDetailsContent"></div>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-students.js"></script>
+</body>
+</html>

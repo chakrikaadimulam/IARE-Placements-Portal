@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/student-profile.css">
+</head>
+<body class="dashboard-body student-theme" data-portal-role="student">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Student Hub</h2>
+                <p>Review your academic and personal profile</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/student-dashboard">Dashboard</a>
+                <a href="/student-profile" class="active">Profile</a>
+                <a href="/student-notices">Notices</a>
+                <a href="/student-companies">Companies</a>
+                <a href="/student-placement-drives">Placement Drives</a>
+                <a href="/student-placement-statistics">Placement Statistics</a>
+                <a href="/student-selected-students">Selected Students</a>
+                <a href="/student-interview-experiences">Interview Experiences</a>
+                <a href="/student-preparation-resources">Preparation Resources</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="student">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Profile</p>
+                <h1><span data-session-student-name>Student</span> Profile</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/student-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <div id="studentProfileLoading" class="loading-state">Loading your profile...</div>
+        <div id="studentProfileError" class="resource-empty-state hidden"></div>
+
+        <section id="studentProfileContent" class="profile-layout hidden">
+            <article class="profile-hero-card">
+                <div class="profile-hero">
+                    <div class="profile-photo-shell">
+                        <img id="studentProfilePhoto" class="profile-photo hidden" alt="Student photo">
+                        <span id="studentProfilePhotoFallback" class="profile-photo-fallback">ST</span>
+                    </div>
+                    <div>
+                        <span class="card-tag">Student Record</span>
+                        <h2 id="studentProfileName">Student Name</h2>
+                        <p id="studentProfileMeta" class="profile-meta">Roll No | Branch | Semester</p>
+                        <p id="studentProfileContact" class="profile-contact">Email | Phone</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="profile-section-card">
+                <h3>Academic & Login Details</h3>
+                <div id="studentAcademicGrid" class="profile-grid"></div>
+            </article>
+
+            <article class="profile-section-card">
+                <h3>Family & Contact</h3>
+                <div id="studentFamilyGrid" class="profile-grid"></div>
+            </article>
+
+            <article class="profile-section-card">
+                <h3>Address & Background</h3>
+                <div id="studentAddressGrid" class="profile-grid"></div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/student-profile.js"></script>
+</body>
+</html>

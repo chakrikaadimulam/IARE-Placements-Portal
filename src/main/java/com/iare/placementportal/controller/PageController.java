@@ -61,6 +61,11 @@ public class PageController {
         return "forward:/admin-preparation-resources.html";
     }
 
+    @GetMapping("/admin-students")
+    public String adminStudents() {
+        return "forward:/admin-students.html";
+    }
+
     @GetMapping("/student-dashboard")
     public String studentDashboard() {
         return "forward:/student-dashboard.html";
@@ -99,5 +104,10 @@ public class PageController {
     @GetMapping("/student-preparation-resources")
     public String studentPreparationResources() {
         return "forward:/student-preparation-resources.html";
+    }
+
+    @GetMapping("/student-profile")
+    public String studentProfile() {
+        return "forward:/student-profile.html";
     }
 }

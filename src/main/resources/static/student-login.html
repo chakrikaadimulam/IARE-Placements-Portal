@@ -20,9 +20,9 @@
             of opportunities with a vibrant student dashboard.
         </p>
         <div class="credential-note">
-            <strong>Demo Credentials</strong>
-            <span>Username: student</span>
-            <span>Password: student123</span>
+            <strong>Login Format</strong>
+            <span>Username: Your Roll No</span>
+            <span>Password: DOB in `ddMMyyyy` format</span>
         </div>
     </section>
 
@@ -34,11 +34,11 @@
         </div>
 
         <form id="studentLoginForm" class="auth-form" novalidate>
-            <label for="studentUsername">Username</label>
-            <input id="studentUsername" name="username" type="text" placeholder="Enter student username" required>
+            <label for="studentUsername">Roll No</label>
+            <input id="studentUsername" name="username" type="text" placeholder="Enter your roll number" required>
 
-            <label for="studentPassword">Password</label>
-            <input id="studentPassword" name="password" type="password" placeholder="Enter student password" required>
+            <label for="studentPassword">DOB Password</label>
+            <input id="studentPassword" name="password" type="password" placeholder="Example: 21082006" required>
 
             <p id="studentError" class="error-message" aria-live="polite"></p>
             <button type="submit" class="primary-btn full-width">Login as Student</button>
