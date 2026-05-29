@@ -1,0 +1,285 @@
+.admin-resource-layout {
+    display: grid;
+    grid-template-columns: minmax(360px, 500px) 1fr;
+    gap: 22px;
+}
+
+.admin-resource-form-card,
+.admin-resource-list-card,
+.admin-resource-item,
+.resource-drive-preview,
+.file-upload-card {
+    background: rgba(10, 20, 38, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+}
+
+.admin-resource-form-card,
+.admin-resource-list-card {
+    padding: 26px;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.resource-section-head h2 {
+    margin: 12px 0 10px;
+}
+
+.resource-section-head p,
+.resource-drive-preview p,
+.resource-meta,
+.loading-state,
+.resource-empty-state,
+.file-name,
+.upload-hint {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.resource-form {
+    display: grid;
+    gap: 12px;
+}
+
+.resource-form label {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.resource-form input,
+.resource-form select,
+.resource-form textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.resource-form select option {
+    color: #0a1426;
+}
+
+.resource-form input:focus,
+.resource-form select:focus,
+.resource-form textarea:focus {
+    border-color: rgba(255, 179, 102, 0.65);
+    box-shadow: 0 0 0 4px rgba(255, 179, 102, 0.1);
+}
+
+.resource-drive-preview {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.resource-drive-logo,
+.resource-company-logo {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.resource-file-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.file-upload-card {
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.file-upload-card input[type="file"] {
+    padding: 12px;
+}
+
+.file-name,
+.existing-file-link {
+    margin: 8px 0 0;
+}
+
+.existing-file-link a,
+.pdf-action-btn,
+.company-link {
+    color: #9deee7;
+    text-decoration: none;
+}
+
+.existing-file-link a:hover,
+.pdf-action-btn:hover {
+    text-decoration: underline;
+}
+
+.resource-form-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.success-message {
+    min-height: 22px;
+    margin: 4px 0 0;
+    color: #7ef2a7;
+    font-size: 0.92rem;
+}
+
+.resource-list {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-resource-item {
+    padding: 22px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-resource-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 179, 102, 0.35);
+}
+
+.resource-header,
+.resource-title-group,
+.resource-actions,
+.resource-pdf-links,
+.resource-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.resource-header {
+    justify-content: space-between;
+}
+
+.resource-title-group h3 {
+    margin: 0 0 6px;
+}
+
+.resource-title-group p,
+.resource-description {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.resource-description {
+    margin-top: 14px;
+    line-height: 1.7;
+}
+
+.resource-pdf-links,
+.resource-meta {
+    margin-top: 14px;
+}
+
+.status-badge,
+.resource-tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.status-active {
+    background: rgba(83, 209, 200, 0.14);
+    color: #9deee7;
+    border: 1px solid rgba(83, 209, 200, 0.26);
+}
+
+.status-disabled {
+    background: rgba(255, 125, 125, 0.12);
+    color: #ffb3b3;
+    border: 1px solid rgba(255, 125, 125, 0.28);
+}
+
+.resource-tag {
+    background: rgba(97, 160, 255, 0.14);
+    color: #c6dbff;
+    border: 1px solid rgba(97, 160, 255, 0.26);
+}
+
+.pdf-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(83, 209, 200, 0.28);
+    background: rgba(83, 209, 200, 0.12);
+}
+
+.resource-actions {
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.mini-btn {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mini-btn:hover {
+    transform: translateY(-2px);
+}
+
+.mini-btn.delete-btn {
+    background: rgba(255, 125, 125, 0.12);
+    border-color: rgba(255, 125, 125, 0.28);
+}
+
+.loading-state,
+.resource-empty-state {
+    padding: 28px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 1180px) {
+    .admin-resource-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 780px) {
+    .resource-file-grid,
+    .topbar-actions {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-resource-form-card,
+    .admin-resource-list-card,
+    .admin-resource-item {
+        padding: 20px;
+    }
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Preparation Resources | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/student-preparation-resources.css">
+</head>
+<body class="dashboard-body student-theme" data-portal-role="student">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Student Hub</h2>
+                <p>Access curated placement preparation resources</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/student-dashboard">Dashboard</a>
+                <a href="/student-preparation-resources" class="active">Preparation Resources</a>
+                <a href="/student-interview-experiences">Interview Experiences</a>
+                <a href="/student-selected-students">Selected Students</a>
+                <a href="/student-placement-statistics">Placement Statistics</a>
+                <a href="/student-placement-drives">Placement Drives</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="student">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Preparation Resources</p>
+                <h1>Explore drive-wise preparation material</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/student-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="student-resource-hero">
+            <div>
+                <span class="card-tag">Learning Material</span>
+                <h2>Find aptitude, coding, technical, and HR preparation PDFs by placement drive.</h2>
+                <p>Search by company, drive, or resource title and open the relevant PDF in a new tab whenever you need it.</p>
+            </div>
+        </section>
+
+        <section class="resource-filters">
+            <input id="resourceSearchInput" type="text" placeholder="Search by company name, drive title, or resource title">
+            <select id="resourceDriveFilter">
+                <option value="">All Placement Drives</option>
+            </select>
+            <select id="resourceYearFilter">
+                <option value="">All Hiring Years</option>
+            </select>
+        </section>
+
+        <section>
+            <div id="studentResourceLoading" class="loading-state">Loading preparation resources...</div>
+            <div id="studentResourceList" class="student-resource-grid"></div>
+            <div id="studentResourceEmpty" class="resource-empty-state hidden">
+                No preparation resources are available right now.
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/student-preparation-resources.js"></script>
+</body>
+</html>

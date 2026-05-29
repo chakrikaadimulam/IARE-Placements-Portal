@@ -24,6 +24,7 @@ public class SecurityConfig {
                                 "/admin-placement-statistics",
                                 "/admin-selected-students",
                                 "/admin-interview-experiences",
+                                "/admin-preparation-resources",
                                 "/student-dashboard",
                                 "/student-notices",
                                 "/student-companies",
@@ -31,6 +32,7 @@ public class SecurityConfig {
                                 "/student-placement-statistics",
                                 "/student-selected-students",
                                 "/student-interview-experiences",
+                                "/student-preparation-resources",
                                 "/api/admin/notices/**",
                                 "/api/student/notices/**",
                                 "/api/admin/companies/**",
@@ -43,6 +45,8 @@ public class SecurityConfig {
                                 "/api/student/selected-students/**",
                                 "/api/admin/interview-experiences/**",
                                 "/api/student/interview-experiences/**",
+                                "/api/admin/preparation-resources/**",
+                                "/api/student/preparation-resources/**",
                                 "/**"
                         ).permitAll()
                         .anyRequest().permitAll()

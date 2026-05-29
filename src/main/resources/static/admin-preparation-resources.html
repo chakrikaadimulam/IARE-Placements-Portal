@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Preparation Resources | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-preparation-resources.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Preparation resources management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-preparation-resources" class="active">Preparation Resources</a>
+                <a href="/admin-interview-experiences">Interview Experiences</a>
+                <a href="/admin-selected-students">Selected Students</a>
+                <a href="/admin-placement-statistics">Placement Statistics</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Preparation Resources</p>
+                <h1>Upload drive-wise preparation PDFs</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-resource-layout">
+            <article class="admin-resource-form-card">
+                <div class="resource-section-head">
+                    <span class="card-tag">Create Resource Pack</span>
+                    <h2>Add preparation materials</h2>
+                    <p>Upload aptitude, coding, technical, and HR PDFs for a specific placement drive using Cloudinary-backed storage.</p>
+                </div>
+
+                <form id="preparationResourceForm" class="resource-form" novalidate>
+                    <input id="editingResourceId" name="editingResourceId" type="hidden">
+
+                    <label for="resourcePlacementDriveId">Placement Drive</label>
+                    <select id="resourcePlacementDriveId" name="placementDriveId" required>
+                        <option value="">Select placement drive</option>
+                    </select>
+
+                    <div id="resourceDrivePreview" class="resource-drive-preview hidden"></div>
+
+                    <label for="resourceTitle">Resource Title</label>
+                    <input id="resourceTitle" name="resourceTitle" type="text" placeholder="Placement Preparation Pack" required>
+
+                    <label for="resourceDescription">Description</label>
+                    <textarea id="resourceDescription" name="description" rows="4" placeholder="Share what these PDFs cover and how students should use them"></textarea>
+
+                    <div class="resource-file-grid">
+                        <div class="file-upload-card">
+                            <label for="aptitudePdf">Aptitude Material PDF</label>
+                            <input id="aptitudePdf" name="aptitudePdf" type="file" accept="application/pdf,.pdf">
+                            <p id="aptitudePdfName" class="file-name">No file selected</p>
+                            <div id="aptitudeExistingLink" class="existing-file-link hidden"></div>
+                        </div>
+                        <div class="file-upload-card">
+                            <label for="codingPdf">Coding Material PDF</label>
+                            <input id="codingPdf" name="codingPdf" type="file" accept="application/pdf,.pdf">
+                            <p id="codingPdfName" class="file-name">No file selected</p>
+                            <div id="codingExistingLink" class="existing-file-link hidden"></div>
+                        </div>
+                        <div class="file-upload-card">
+                            <label for="technicalPdf">Technical Topics PDF</label>
+                            <input id="technicalPdf" name="technicalPdf" type="file" accept="application/pdf,.pdf">
+                            <p id="technicalPdfName" class="file-name">No file selected</p>
+                            <div id="technicalExistingLink" class="existing-file-link hidden"></div>
+                        </div>
+                        <div class="file-upload-card">
+                            <label for="hrPdf">HR Preparation PDF</label>
+                            <input id="hrPdf" name="hrPdf" type="file" accept="application/pdf,.pdf">
+                            <p id="hrPdfName" class="file-name">No file selected</p>
+                            <div id="hrExistingLink" class="existing-file-link hidden"></div>
+                        </div>
+                    </div>
+
+                    <p id="resourceUploadHint" class="upload-hint">Upload at least one PDF while creating a new resource pack. Each file can be up to 10MB.</p>
+                    <p id="resourceSuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="resourceError" class="error-message" aria-live="polite"></p>
+
+                    <div class="resource-form-actions">
+                        <button id="submitResourceButton" type="submit" class="primary-btn">Add Resource</button>
+                        <button id="cancelResourceEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-resource-list-card">
+                <div class="resource-section-head">
+                    <span class="card-tag">Saved Packs</span>
+                    <h2>Review uploaded resources</h2>
+                    <p>Manage uploaded PDFs and keep drive-wise preparation material organized for students.</p>
+                </div>
+
+                <div id="adminResourceLoading" class="loading-state">Loading preparation resources...</div>
+                <div id="adminResourceList" class="resource-list"></div>
+                <div id="adminResourceEmpty" class="resource-empty-state hidden">
+                    No preparation resources added yet. Upload the first drive-wise preparation pack to get started.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-preparation-resources.js"></script>
+</body>
+</html>
