@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Interview Experiences | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-interview-experiences.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Interview experience management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-interview-experiences" class="active">Interview Experiences</a>
+                <a href="/admin-selected-students">Selected Students</a>
+                <a href="/admin-placement-statistics">Placement Statistics</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+                <a href="/admin-companies">Manage Companies</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Interview Experiences</p>
+                <h1>Collect drive-wise student interview experiences</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-experience-layout">
+            <article class="admin-experience-form-card">
+                <div class="experience-section-head">
+                    <span class="card-tag">Create Experience Record</span>
+                    <h2>Add a student interview experience</h2>
+                    <p>Capture real interview insights linked to a specific placement drive so students can learn from past rounds.</p>
+                </div>
+
+                <form id="interviewExperienceForm" class="experience-form" novalidate>
+                    <input id="editingExperienceId" name="editingExperienceId" type="hidden">
+
+                    <label for="experiencePlacementDriveId">Placement Drive</label>
+                    <select id="experiencePlacementDriveId" name="placementDriveId" required>
+                        <option value="">Select placement drive</option>
+                    </select>
+
+                    <div id="experienceDrivePreview" class="experience-drive-preview hidden"></div>
+
+                    <div class="experience-form-grid">
+                        <div>
+                            <label for="experienceStudentName">Student Name</label>
+                            <input id="experienceStudentName" name="studentName" type="text" placeholder="Enter student name" required>
+                        </div>
+                        <div>
+                            <label for="experienceRoleOffered">Role Offered</label>
+                            <input id="experienceRoleOffered" name="roleOffered" type="text" placeholder="Software Engineer" required>
+                        </div>
+                    </div>
+
+                    <div class="experience-form-grid">
+                        <div>
+                            <label for="experienceStudentPhotoUrl">Student Photo URL</label>
+                            <input id="experienceStudentPhotoUrl" name="studentPhotoUrl" type="url" placeholder="https://example.com/student-photo.jpg">
+                        </div>
+                        <div>
+                            <label for="experienceDifficultyLevel">Difficulty Level</label>
+                            <select id="experienceDifficultyLevel" name="difficultyLevel" required>
+                                <option value="">Select difficulty</option>
+                                <option>Easy</option>
+                                <option>Medium</option>
+                                <option>Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="experience-form-grid">
+                        <div>
+                            <label for="experienceRoundsFaced">Rounds Faced</label>
+                            <input id="experienceRoundsFaced" name="roundsFaced" type="text" placeholder="Aptitude, Coding, Technical, HR" required>
+                        </div>
+                        <div>
+                            <label for="experienceFinalResult">Final Result</label>
+                            <select id="experienceFinalResult" name="finalResult" required>
+                                <option value="">Select final result</option>
+                                <option>Selected</option>
+                                <option>Rejected</option>
+                                <option>Waiting</option>
+                                <option>Internship Offered</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label for="experienceQuestionsAsked">Questions Asked</label>
+                    <textarea id="experienceQuestionsAsked" name="questionsAsked" rows="4" placeholder="Share the complete set of questions asked in the interview" required></textarea>
+
+                    <div class="experience-form-grid">
+                        <div>
+                            <label for="experienceCodingQuestions">Coding Questions</label>
+                            <textarea id="experienceCodingQuestions" name="codingQuestions" rows="4" placeholder="Describe coding tasks or problem statements"></textarea>
+                        </div>
+                        <div>
+                            <label for="experienceTechnicalTopics">Technical Topics</label>
+                            <textarea id="experienceTechnicalTopics" name="technicalTopics" rows="4" placeholder="DSA, OOP, DBMS, Networks, OS, AI/ML"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="experience-form-grid">
+                        <div>
+                            <label for="experienceHrQuestions">HR Questions</label>
+                            <textarea id="experienceHrQuestions" name="hrQuestions" rows="4" placeholder="Tell me about yourself, strengths, relocation..."></textarea>
+                        </div>
+                        <div>
+                            <label for="experiencePreparationTips">Preparation Tips</label>
+                            <textarea id="experiencePreparationTips" name="preparationTips" rows="4" placeholder="Share practical tips for future candidates" required></textarea>
+                        </div>
+                    </div>
+
+                    <label for="experienceDate">Experience Date</label>
+                    <input id="experienceDate" name="experienceDate" type="date" required>
+
+                    <p id="experienceSuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="experienceError" class="error-message" aria-live="polite"></p>
+
+                    <div class="experience-form-actions">
+                        <button id="submitExperienceButton" type="submit" class="primary-btn">Add Experience</button>
+                        <button id="cancelExperienceEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-experience-list-card">
+                <div class="experience-section-head">
+                    <span class="card-tag">Saved Experiences</span>
+                    <h2>Review interview stories</h2>
+                    <p>Manage student experiences, review full details, and keep shared preparation knowledge accurate and current.</p>
+                </div>
+
+                <div id="adminExperienceLoading" class="loading-state">Loading interview experience records...</div>
+                <div id="adminExperienceList" class="experience-list"></div>
+                <div id="adminExperienceEmpty" class="experience-empty-state hidden">
+                    No interview experiences added yet. Add the first record to start building your knowledge base.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<div id="experienceDetailsModal" class="experience-modal hidden" aria-hidden="true">
+    <div class="experience-modal-backdrop" data-close-modal="true"></div>
+    <div class="experience-modal-card" role="dialog" aria-modal="true" aria-labelledby="experienceModalTitle">
+        <div class="experience-modal-header">
+            <div>
+                <p class="eyebrow">Experience Details</p>
+                <h2 id="experienceModalTitle">Interview Experience</h2>
+            </div>
+            <button id="closeExperienceModalButton" class="mini-btn" type="button">Close</button>
+        </div>
+        <div id="experienceModalBody" class="experience-modal-body"></div>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-interview-experiences.js"></script>
+</body>
+</html>

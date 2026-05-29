@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Placement Statistics | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-placement-statistics.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Placement statistics management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-placement-statistics" class="active">Placement Statistics</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+                <a href="/admin-companies">Manage Companies</a>
+                <a href="/admin-notices">Notices</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Statistics Management</p>
+                <h1>Capture placement outcomes by drive</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-statistics-layout">
+            <article class="admin-statistics-form-card">
+                <div class="statistics-section-head">
+                    <span class="card-tag">Create Statistics</span>
+                    <h2>Add drive-wise placement statistics</h2>
+                    <p>Each placement drive can have only one statistics record, helping you track the exact outcome for that hiring cycle.</p>
+                </div>
+
+                <form id="placementStatisticsForm" class="statistics-form" novalidate>
+                    <input id="editingStatisticsId" name="editingStatisticsId" type="hidden">
+
+                    <label for="placementDriveId">Placement Drive</label>
+                    <select id="placementDriveId" name="placementDriveId" required>
+                        <option value="">Select placement drive</option>
+                    </select>
+
+                    <div id="drivePreview" class="drive-preview hidden"></div>
+
+                    <div class="statistics-form-grid">
+                        <div>
+                            <label for="studentsApplied">Students Applied</label>
+                            <input id="studentsApplied" name="studentsApplied" type="number" min="0" placeholder="500">
+                        </div>
+                        <div>
+                            <label for="studentsAttended">Students Attended</label>
+                            <input id="studentsAttended" name="studentsAttended" type="number" min="0" placeholder="450">
+                        </div>
+                    </div>
+
+                    <div class="statistics-form-grid">
+                        <div>
+                            <label for="studentsShortlisted">Students Shortlisted</label>
+                            <input id="studentsShortlisted" name="studentsShortlisted" type="number" min="0" placeholder="120">
+                        </div>
+                        <div>
+                            <label for="studentsSelected">Students Selected</label>
+                            <input id="studentsSelected" name="studentsSelected" type="number" min="0" placeholder="75">
+                        </div>
+                    </div>
+
+                    <div class="statistics-form-grid">
+                        <div>
+                            <label for="maleSelected">Male Selected</label>
+                            <input id="maleSelected" name="maleSelected" type="number" min="0" placeholder="45">
+                        </div>
+                        <div>
+                            <label for="femaleSelected">Female Selected</label>
+                            <input id="femaleSelected" name="femaleSelected" type="number" min="0" placeholder="30">
+                        </div>
+                    </div>
+
+                    <div class="statistics-form-grid">
+                        <div>
+                            <label for="highestPackage">Highest Package</label>
+                            <input id="highestPackage" name="highestPackage" type="number" min="0" step="0.01" placeholder="8">
+                        </div>
+                        <div>
+                            <label for="averagePackage">Average Package</label>
+                            <input id="averagePackage" name="averagePackage" type="number" min="0" step="0.01" placeholder="4.5">
+                        </div>
+                    </div>
+
+                    <label for="lowestPackage">Lowest Package</label>
+                    <input id="lowestPackage" name="lowestPackage" type="number" min="0" step="0.01" placeholder="3.6">
+
+                    <p id="statisticsSuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="statisticsError" class="error-message" aria-live="polite"></p>
+
+                    <div class="statistics-form-actions">
+                        <button id="submitStatisticsButton" type="submit" class="primary-btn">Add Statistics</button>
+                        <button id="cancelStatisticsEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-statistics-list-card">
+                <div class="statistics-section-head">
+                    <span class="card-tag">Saved Statistics</span>
+                    <h2>Review drive-wise outcomes</h2>
+                    <p>Each record shows the outcome for one placement drive with selection counts and package insights.</p>
+                </div>
+
+                <div id="adminStatisticsLoading" class="loading-state">Loading placement statistics...</div>
+                <div id="adminStatisticsList" class="statistics-list"></div>
+                <div id="adminStatisticsEmpty" class="statistics-empty-state hidden">
+                    No placement statistics added yet. Create your first statistics record to get started.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-placement-statistics.js"></script>
+</body>
+</html>

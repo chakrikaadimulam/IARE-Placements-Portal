@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Interview Experiences | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/student-interview-experiences.css">
+</head>
+<body class="dashboard-body student-theme" data-portal-role="student">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Student Hub</h2>
+                <p>Learn from real interview experiences</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/student-dashboard">Dashboard</a>
+                <a href="/student-interview-experiences" class="active">Interview Experiences</a>
+                <a href="/student-selected-students">Selected Students</a>
+                <a href="/student-placement-statistics">Placement Statistics</a>
+                <a href="/student-placement-drives">Placement Drives</a>
+                <a href="/student-companies">Companies</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="student">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Interview Experiences</p>
+                <h1>Study real student interview journeys</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/student-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="student-experience-hero">
+            <div>
+                <span class="card-tag">Preparation Insights</span>
+                <h2>Search role-wise experiences and understand what companies actually ask.</h2>
+                <p>Filter by drive, difficulty, result, or year and review coding, technical, HR, and preparation insights in one place.</p>
+            </div>
+        </section>
+
+        <section class="experience-filters">
+            <input id="experienceSearchInput" type="text" placeholder="Search by student, company, drive title, role, or technical topic">
+            <select id="experienceDriveFilter">
+                <option value="">All Placement Drives</option>
+            </select>
+            <select id="experienceDifficultyFilter">
+                <option value="">All Difficulty Levels</option>
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+            </select>
+            <select id="experienceFinalResultFilter">
+                <option value="">All Final Results</option>
+                <option>Selected</option>
+                <option>Rejected</option>
+                <option>Waiting</option>
+                <option>Internship Offered</option>
+            </select>
+            <select id="experienceYearFilter">
+                <option value="">All Hiring Years</option>
+            </select>
+        </section>
+
+        <section>
+            <div id="studentExperienceLoading" class="loading-state">Loading interview experiences...</div>
+            <div id="studentExperienceList" class="student-experience-grid"></div>
+            <div id="studentExperienceEmpty" class="experience-empty-state hidden">
+                No interview experiences are available right now.
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/student-interview-experiences.js"></script>
+</body>
+</html>

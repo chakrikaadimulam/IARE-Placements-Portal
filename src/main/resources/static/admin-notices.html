@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Notices | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-notices.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Notice management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-notices" class="active">Notices</a>
+                <a href="/admin-dashboard#students">Manage Students</a>
+                <a href="/admin-dashboard#companies">Manage Companies</a>
+                <a href="/admin-dashboard#records">Placement Records</a>
+                <a href="/admin-dashboard#mock-results">Mock Interview Results</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Notice Management</p>
+                <h1>Create and manage placement announcements</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-notices-layout">
+            <article class="admin-notice-form-card">
+                <div class="notice-section-head">
+                    <span class="card-tag">Create Notice</span>
+                    <h2>Add a new notice</h2>
+                    <p>These notices are saved in the database and become visible to all students when active for the current date.</p>
+                </div>
+
+                <form id="adminNoticeForm" class="notice-form" novalidate>
+                    <input id="editingNoticeId" name="editingNoticeId" type="hidden">
+
+                    <label for="noticeTitle">Notice Title</label>
+                    <input id="noticeTitle" name="title" type="text" placeholder="Enter notice title" required>
+
+                    <label for="noticeMessage">Notice Message</label>
+                    <textarea id="noticeMessage" name="message" rows="5" placeholder="Write the full notice content" required></textarea>
+
+                    <div class="notice-form-grid">
+                        <div>
+                            <label for="validFrom">Valid From Date</label>
+                            <input id="validFrom" name="validFrom" type="date" required>
+                        </div>
+                        <div>
+                            <label for="validTo">Valid To Date</label>
+                            <input id="validTo" name="validTo" type="date" required>
+                        </div>
+                    </div>
+
+                    <p id="adminNoticeSuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="adminNoticeError" class="error-message" aria-live="polite"></p>
+
+                    <div class="notice-form-actions">
+                        <button id="submitNoticeButton" type="submit" class="primary-btn">Add Notice</button>
+                        <button id="cancelEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-notice-list-card">
+                <div class="notice-section-head">
+                    <span class="card-tag">Saved Notices</span>
+                    <h2>Manage existing announcements</h2>
+                    <p>Review active, upcoming, expired, and disabled notices with quick actions.</p>
+                </div>
+
+                <div id="adminNoticeList" class="notice-list"></div>
+                <div id="adminNoticeEmpty" class="notice-empty-state hidden">
+                    No notices added yet. Create your first announcement to get started.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-notices.js"></script>
+</body>
+</html>

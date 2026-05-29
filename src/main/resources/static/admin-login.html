@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body admin-theme">
+<div class="background-orb orb-one"></div>
+<div class="background-orb orb-three"></div>
+
+<main class="auth-layout">
+    <section class="auth-info">
+        <a class="back-link" href="/">&larr; Back to portal</a>
+        <p class="eyebrow">Administrator Access</p>
+        <h1>Lead placement operations with a clear and organized control center.</h1>
+        <p>
+            Monitor student engagement, manage company partnerships, and keep placement progress visible
+            from one professional dashboard.
+        </p>
+        <div class="credential-note">
+            <strong>Demo Credentials</strong>
+            <span>Username: admin</span>
+            <span>Password: admin123</span>
+        </div>
+    </section>
+
+    <section class="auth-card">
+        <div class="auth-card-header">
+            <span class="role-badge">Admin Login</span>
+            <h2>Welcome back</h2>
+            <p>Sign in to continue to the admin dashboard.</p>
+        </div>
+
+        <form id="adminLoginForm" class="auth-form" novalidate>
+            <label for="adminUsername">Username</label>
+            <input id="adminUsername" name="username" type="text" placeholder="Enter admin username" required>
+
+            <label for="adminPassword">Password</label>
+            <input id="adminPassword" name="password" type="password" placeholder="Enter admin password" required>
+
+            <p id="adminError" class="error-message" aria-live="polite"></p>
+            <button type="submit" class="primary-btn full-width">Login as Admin</button>
+        </form>
+    </section>
+</main>
+
+<script src="/js/auth.js"></script>
+</body>
+</html>

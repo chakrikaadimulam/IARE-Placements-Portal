@@ -1,0 +1,348 @@
+.admin-experience-layout {
+    display: grid;
+    grid-template-columns: minmax(360px, 520px) 1fr;
+    gap: 22px;
+}
+
+.admin-experience-form-card,
+.admin-experience-list-card,
+.admin-experience-item,
+.experience-drive-preview,
+.experience-modal-card {
+    background: rgba(10, 20, 38, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+}
+
+.admin-experience-form-card,
+.admin-experience-list-card {
+    padding: 26px;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.experience-section-head h2 {
+    margin: 12px 0 10px;
+}
+
+.experience-section-head p,
+.experience-card-meta,
+.experience-drive-preview p,
+.loading-state,
+.experience-empty-state,
+.experience-modal-copy,
+.experience-text-group p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+.experience-form {
+    display: grid;
+    gap: 12px;
+}
+
+.experience-form label {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.experience-form input,
+.experience-form select,
+.experience-form textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    outline: none;
+    resize: vertical;
+}
+
+.experience-form select option {
+    color: #0a1426;
+}
+
+.experience-form input:focus,
+.experience-form select:focus,
+.experience-form textarea:focus {
+    border-color: rgba(255, 179, 102, 0.65);
+    box-shadow: 0 0 0 4px rgba(255, 179, 102, 0.1);
+}
+
+.experience-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.experience-drive-preview {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.experience-drive-logo,
+.experience-company-logo,
+.experience-student-photo,
+.experience-modal-logo,
+.experience-modal-student-photo {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.experience-form-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.success-message {
+    min-height: 22px;
+    margin: 4px 0 0;
+    color: #7ef2a7;
+    font-size: 0.92rem;
+}
+
+.experience-list {
+    display: grid;
+    gap: 16px;
+}
+
+.admin-experience-item {
+    padding: 22px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-experience-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 179, 102, 0.35);
+}
+
+.experience-card-header,
+.experience-card-header-main,
+.experience-card-student,
+.experience-card-badges,
+.experience-card-meta,
+.experience-card-actions,
+.experience-modal-header,
+.experience-modal-hero {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.experience-card-header {
+    justify-content: space-between;
+}
+
+.experience-card-header-main,
+.experience-card-student,
+.experience-modal-hero {
+    gap: 16px;
+}
+
+.experience-card-header-main h3,
+.experience-card-student h4,
+.experience-modal-hero h3,
+.experience-text-group h4 {
+    margin: 0 0 6px;
+}
+
+.experience-card-header-main p,
+.experience-card-student p,
+.experience-modal-hero p,
+.experience-text-group p {
+    margin: 0;
+}
+
+.experience-card-badges,
+.experience-card-meta {
+    margin-top: 14px;
+}
+
+.difficulty-badge,
+.result-badge,
+.status-badge,
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.difficulty-easy {
+    background: rgba(60, 201, 123, 0.12);
+    color: #7ef2a7;
+    border: 1px solid rgba(60, 201, 123, 0.24);
+}
+
+.difficulty-medium {
+    background: rgba(255, 179, 102, 0.14);
+    color: #ffd79b;
+    border: 1px solid rgba(255, 179, 102, 0.26);
+}
+
+.difficulty-hard {
+    background: rgba(255, 125, 125, 0.12);
+    color: #ffb3b3;
+    border: 1px solid rgba(255, 125, 125, 0.28);
+}
+
+.result-selected,
+.status-active {
+    background: rgba(83, 209, 200, 0.14);
+    color: #9deee7;
+    border: 1px solid rgba(83, 209, 200, 0.26);
+}
+
+.result-rejected,
+.status-disabled {
+    background: rgba(255, 125, 125, 0.12);
+    color: #ffb3b3;
+    border: 1px solid rgba(255, 125, 125, 0.28);
+}
+
+.result-waiting,
+.result-internship-offered,
+.role-badge {
+    background: rgba(97, 160, 255, 0.14);
+    color: #c6dbff;
+    border: 1px solid rgba(97, 160, 255, 0.26);
+}
+
+.experience-card-actions {
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.mini-btn {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mini-btn:hover {
+    transform: translateY(-2px);
+}
+
+.mini-btn.delete-btn {
+    background: rgba(255, 125, 125, 0.12);
+    border-color: rgba(255, 125, 125, 0.28);
+}
+
+.loading-state,
+.experience-empty-state {
+    padding: 28px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    text-align: center;
+}
+
+.experience-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.experience-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 11, 22, 0.78);
+    backdrop-filter: blur(6px);
+}
+
+.experience-modal-card {
+    position: relative;
+    width: min(920px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    padding: 24px;
+}
+
+.experience-modal-header {
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.experience-modal-body {
+    display: grid;
+    gap: 18px;
+}
+
+.experience-modal-hero {
+    align-items: flex-start;
+}
+
+.experience-modal-copy {
+    margin-top: 12px;
+}
+
+.experience-text-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.experience-text-group {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 1180px) {
+    .admin-experience-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 820px) {
+    .experience-form-grid,
+    .experience-text-grid,
+    .topbar-actions {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-experience-form-card,
+    .admin-experience-list-card,
+    .admin-experience-item,
+    .experience-modal-card {
+        padding: 20px;
+    }
+
+    .experience-card-header-main,
+    .experience-card-student,
+    .experience-modal-hero {
+        align-items: flex-start;
+    }
+}

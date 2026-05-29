@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Selected Students | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-selected-students.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Selected students management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-selected-students" class="active">Selected Students</a>
+                <a href="/admin-placement-statistics">Placement Statistics</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+                <a href="/admin-companies">Manage Companies</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Selected Students</p>
+                <h1>Capture selected student records by drive</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-selected-layout">
+            <article class="admin-selected-form-card">
+                <div class="selected-section-head">
+                    <span class="card-tag">Create Selection Record</span>
+                    <h2>Add selected student details</h2>
+                    <p>Selection records are linked to a specific placement drive so the same student can appear in different drives without conflict.</p>
+                </div>
+
+                <form id="selectedStudentForm" class="selected-form" novalidate>
+                    <input id="editingSelectedStudentId" name="editingSelectedStudentId" type="hidden">
+
+                    <label for="selectedPlacementDriveId">Placement Drive</label>
+                    <select id="selectedPlacementDriveId" name="placementDriveId" required>
+                        <option value="">Select placement drive</option>
+                    </select>
+
+                    <div id="selectedDrivePreview" class="selected-drive-preview hidden"></div>
+
+                    <div class="selected-form-grid">
+                        <div>
+                            <label for="studentName">Student Name</label>
+                            <input id="studentName" name="studentName" type="text" placeholder="Enter student name" required>
+                        </div>
+                        <div>
+                            <label for="rollNumber">Roll Number</label>
+                            <input id="rollNumber" name="rollNumber" type="text" placeholder="Enter roll number" required>
+                        </div>
+                    </div>
+
+                    <div class="selected-form-grid">
+                        <div>
+                            <label for="branch">Branch</label>
+                            <input id="branch" name="branch" type="text" placeholder="CSE" required>
+                        </div>
+                        <div>
+                            <label for="section">Section</label>
+                            <input id="section" name="section" type="text" placeholder="A" required>
+                        </div>
+                    </div>
+
+                    <div class="selected-form-grid">
+                        <div>
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select gender</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="photoUrl">Photo URL</label>
+                            <input id="photoUrl" name="photoUrl" type="url" placeholder="https://example.com/student-photo.jpg">
+                        </div>
+                    </div>
+
+                    <div class="selected-form-grid">
+                        <div>
+                            <label for="packageOffered">Package Offered</label>
+                            <input id="packageOffered" name="packageOffered" type="text" placeholder="8 LPA" required>
+                        </div>
+                        <div>
+                            <label for="roleOffered">Role Offered</label>
+                            <input id="roleOffered" name="roleOffered" type="text" placeholder="Software Engineer" required>
+                        </div>
+                    </div>
+
+                    <div class="selected-form-grid">
+                        <div>
+                            <label for="offerType">Offer Type</label>
+                            <select id="offerType" name="offerType" required>
+                                <option value="">Select offer type</option>
+                                <option>Internship</option>
+                                <option>Full Time</option>
+                                <option>Internship + Full Time</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="selectionDate">Selection Date</label>
+                            <input id="selectionDate" name="selectionDate" type="date" required>
+                        </div>
+                    </div>
+
+                    <p id="selectedStudentSuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="selectedStudentError" class="error-message" aria-live="polite"></p>
+
+                    <div class="selected-form-actions">
+                        <button id="submitSelectedStudentButton" type="submit" class="primary-btn">Add Student</button>
+                        <button id="cancelSelectedStudentEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-selected-list-card">
+                <div class="selected-section-head">
+                    <span class="card-tag">Saved Records</span>
+                    <h2>Review selected students</h2>
+                    <p>Manage drive-wise selected student records with company and offer details in one place.</p>
+                </div>
+
+                <div id="adminSelectedStudentsLoading" class="loading-state">Loading selected student records...</div>
+                <div id="adminSelectedStudentsList" class="selected-list"></div>
+                <div id="adminSelectedStudentsEmpty" class="selected-empty-state hidden">
+                    No selected student records added yet. Create your first record to get started.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-selected-students.js"></script>
+</body>
+</html>

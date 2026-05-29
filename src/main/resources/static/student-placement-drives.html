@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Placement Drives | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/student-placement-drives.css">
+</head>
+<body class="dashboard-body student-theme" data-portal-role="student">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Student Hub</h2>
+                <p>Explore active placement drives</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/student-dashboard">Dashboard</a>
+                <a href="/student-placement-drives" class="active">Placement Drives</a>
+                <a href="/student-companies">Companies</a>
+                <a href="/student-notices">Notices</a>
+                <a href="/student-dashboard#mock">Mock Interview</a>
+                <a href="/student-dashboard#roadmap">Preparation Roadmap</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="student">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Placement Drives</p>
+                <h1>Track open hiring opportunities</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/student-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="student-drives-hero">
+            <div>
+                <span class="card-tag">Opportunity Feed</span>
+                <h2>View every active drive separately, even for repeat recruiters.</h2>
+                <p>Search by company or drive title and filter by hiring year, status, or job type.</p>
+            </div>
+        </section>
+
+        <section class="drive-filters">
+            <input id="driveSearchInput" type="text" placeholder="Search by company name or drive title">
+            <select id="driveYearFilter">
+                <option value="">All Hiring Years</option>
+            </select>
+            <select id="driveStatusFilter">
+                <option value="">All Statuses</option>
+                <option>Upcoming</option>
+                <option>Ongoing</option>
+                <option>Completed</option>
+                <option>Closed</option>
+            </select>
+            <select id="driveJobTypeFilter">
+                <option value="">All Job Types</option>
+                <option>Internship</option>
+                <option>Full Time</option>
+                <option>Internship + Full Time</option>
+            </select>
+        </section>
+
+        <section>
+            <div id="studentDrivesLoading" class="loading-state">Loading placement drives...</div>
+            <div id="studentDriveList" class="student-drive-grid"></div>
+            <div id="studentDriveEmpty" class="drive-empty-state hidden">
+                No placement drives are available right now. Please check again later.
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/student-placement-drives.js"></script>
+</body>
+</html>

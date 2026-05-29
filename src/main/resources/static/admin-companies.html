@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Companies | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-companies.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Company management center</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/admin-dashboard">Dashboard</a>
+                <a href="/admin-companies" class="active">Manage Companies</a>
+                <a href="/admin-notices">Notices</a>
+                <a href="/admin-dashboard#students">Manage Students</a>
+                <a href="/admin-dashboard#records">Placement Records</a>
+                <a href="/admin-dashboard#mock-results">Mock Interview Results</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Company Management</p>
+                <h1>Add and maintain recruiter profiles</h1>
+            </div>
+            <div class="topbar-actions">
+                <a class="secondary-btn" href="/admin-dashboard">Back to Dashboard</a>
+            </div>
+        </header>
+
+        <section class="admin-companies-layout">
+            <article class="admin-company-form-card">
+                <div class="company-section-head">
+                    <span class="card-tag">Create Company</span>
+                    <h2>Add a company profile</h2>
+                    <p>Store recruiter information in MySQL so it is available across all student sessions.</p>
+                </div>
+
+                <form id="adminCompanyForm" class="company-form" novalidate>
+                    <input id="editingCompanyId" name="editingCompanyId" type="hidden">
+
+                    <label for="companyName">Company Name</label>
+                    <input id="companyName" name="companyName" type="text" placeholder="Enter company name" required>
+
+                    <label for="logoUrl">Company Logo URL</label>
+                    <input id="logoUrl" name="logoUrl" type="url" placeholder="https://example.com/logo.png">
+
+                    <label for="websiteUrl">Company Website URL</label>
+                    <input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://company.com">
+
+                    <div class="company-form-grid">
+                        <div>
+                            <label for="companyType">Company Type</label>
+                            <select id="companyType" name="companyType" required>
+                                <option value="">Select company type</option>
+                                <option>Product Based</option>
+                                <option>Service Based</option>
+                                <option>Startup</option>
+                                <option>MNC</option>
+                                <option>Core</option>
+                                <option>Consulting</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="industry">Industry</label>
+                            <select id="industry" name="industry" required>
+                                <option value="">Select industry</option>
+                                <option>Software</option>
+                                <option>IT Services</option>
+                                <option>AI/ML</option>
+                                <option>Finance</option>
+                                <option>Electronics</option>
+                                <option>Mechanical</option>
+                                <option>Consulting</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="company-form-grid">
+                        <div>
+                            <label for="headquarters">Headquarters</label>
+                            <input id="headquarters" name="headquarters" type="text" placeholder="City, Country">
+                        </div>
+                        <div>
+                            <label for="foundedYear">Founded Year</label>
+                            <input id="foundedYear" name="foundedYear" type="number" min="1900" max="2100" placeholder="2020">
+                        </div>
+                    </div>
+
+                    <label for="description">Company Description</label>
+                    <textarea id="description" name="description" rows="6" placeholder="Describe the company, its focus, and placement relevance" required></textarea>
+
+                    <p id="adminCompanySuccess" class="success-message hidden" aria-live="polite"></p>
+                    <p id="adminCompanyError" class="error-message" aria-live="polite"></p>
+
+                    <div class="company-form-actions">
+                        <button id="submitCompanyButton" type="submit" class="primary-btn">Add Company</button>
+                        <button id="cancelCompanyEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="admin-company-list-card">
+                <div class="company-section-head">
+                    <span class="card-tag">Saved Companies</span>
+                    <h2>Manage company records</h2>
+                    <p>Review active and disabled recruiter profiles, update their details, or remove outdated records.</p>
+                </div>
+
+                <div id="adminCompaniesLoading" class="loading-state">Loading companies...</div>
+                <div id="adminCompanyList" class="company-list"></div>
+                <div id="adminCompanyEmpty" class="company-empty-state hidden">
+                    No companies added yet. Create your first company profile to get started.
+                </div>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/admin-companies.js"></script>
+</body>
+</html>

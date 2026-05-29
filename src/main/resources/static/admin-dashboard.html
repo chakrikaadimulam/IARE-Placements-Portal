@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-notices.css">
+    <link rel="stylesheet" href="/css/admin-companies.css">
+    <link rel="stylesheet" href="/css/admin-placement-drives.css">
+    <link rel="stylesheet" href="/css/admin-placement-statistics.css">
+    <link rel="stylesheet" href="/css/admin-selected-students.css">
+</head>
+<body class="dashboard-body admin-theme" data-portal-role="admin">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Admin Panel</h2>
+                <p>Placement operations overview</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#overview">Placement Overview</a>
+                <a href="#students">Manage Students</a>
+                <a href="/admin-companies">Manage Companies</a>
+                <a href="/admin-placement-drives">Placement Drives</a>
+                <a href="/admin-placement-statistics">Placement Statistics</a>
+                <a href="/admin-selected-students">Selected Students</a>
+                <a href="/admin-interview-experiences">Interview Experiences</a>
+                <a href="#records">Manage Placement Records</a>
+                <a href="#resume-reports">Resume Analysis Reports</a>
+                <a href="#knowledge-base">AI Chatbot Knowledge Base</a>
+                <a href="#mock-results">Mock Interview Results</a>
+                <a href="/admin-notices">Notices</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="admin">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Dashboard</p>
+                <h1>Welcome, Admin</h1>
+            </div>
+            <div class="topbar-stat">
+                <span>Active Mode</span>
+                <strong>Placement Management</strong>
+            </div>
+        </header>
+
+        <section class="dashboard-grid">
+            <article id="overview" class="feature-card wide-card">
+                <span class="card-tag">Overview</span>
+                <h3>Placement Overview</h3>
+                <p>Track drives, outcomes, and student engagement from a central command view.</p>
+            </article>
+            <article id="students" class="feature-card">
+                <span class="card-tag">Management</span>
+                <h3>Manage Students</h3>
+                <p>Add, review, and organize student placement records and readiness status.</p>
+            </article>
+            <article id="companies" class="feature-card">
+                <span class="card-tag">Partnerships</span>
+                <h3>Manage Companies</h3>
+                <p>Maintain recruiter details, drive schedules, and hiring status updates.</p>
+                <a class="notice-inline-link" href="/admin-companies">Open Companies</a>
+            </article>
+            <article id="records" class="feature-card">
+                <span class="card-tag">Records</span>
+                <h3>Manage Placement Records</h3>
+                <p>Keep placement data structured, up to date, and ready for reporting.</p>
+            </article>
+            <article class="feature-card">
+                <span class="card-tag">Drive Ops</span>
+                <h3>Placement Drives</h3>
+                <p>Create year-wise hiring drives for each company and manage live drive details.</p>
+                <a class="notice-inline-link" href="/admin-placement-drives">Open Drives</a>
+            </article>
+            <article class="feature-card">
+                <span class="card-tag">Analytics</span>
+                <h3>Placement Statistics</h3>
+                <p>Track applied, attended, shortlisted, selected, and package outcomes for each placement drive.</p>
+                <a class="notice-inline-link" href="/admin-placement-statistics">Open Statistics</a>
+            </article>
+            <article id="selected" class="feature-card">
+                <span class="card-tag">Results</span>
+                <h3>Selected Students</h3>
+                <p>Highlight successful candidates and track final placement achievements.</p>
+                <a class="notice-inline-link" href="/admin-selected-students">Open Selected Students</a>
+            </article>
+            <article id="experiences" class="feature-card">
+                <span class="card-tag">Insights</span>
+                <h3>Interview Experiences</h3>
+                <p>Collect and review student feedback to improve future preparation plans.</p>
+                <a class="notice-inline-link" href="/admin-interview-experiences">Open Interview Experiences</a>
+            </article>
+            <article id="resume-reports" class="feature-card">
+                <span class="card-tag">AI Reports</span>
+                <h3>Resume Analysis Reports</h3>
+                <p>Review placeholder AI-generated resume evaluation summaries and trends.</p>
+            </article>
+            <article id="knowledge-base" class="feature-card">
+                <span class="card-tag">Knowledge</span>
+                <h3>AI Chatbot Knowledge Base</h3>
+                <p>Prepare structured content for future chatbot support and guidance features.</p>
+            </article>
+            <article id="mock-results" class="feature-card">
+                <span class="card-tag">Practice</span>
+                <h3>Mock Interview Results</h3>
+                <p>Monitor mock interview outcomes and readiness indicators for students.</p>
+            </article>
+            <article class="feature-card notice-shortcut-card">
+                <span class="card-tag">Communication</span>
+                <h3>Notice Management</h3>
+                <p>Create time-bound notices for students and keep portal communication current.</p>
+                <a class="notice-inline-link" href="/admin-notices">Open Notices</a>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

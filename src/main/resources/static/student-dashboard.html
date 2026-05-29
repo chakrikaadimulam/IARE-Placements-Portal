@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/student-notices.css">
+    <link rel="stylesheet" href="/css/student-companies.css">
+    <link rel="stylesheet" href="/css/student-placement-drives.css">
+    <link rel="stylesheet" href="/css/student-placement-statistics.css">
+    <link rel="stylesheet" href="/css/student-selected-students.css">
+</head>
+<body class="dashboard-body student-theme" data-portal-role="student">
+<div class="dashboard-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="brand-block">
+                <span class="brand-chip">IARE AI Placement Portal</span>
+                <h2>Student Hub</h2>
+                <p>Your preparation and growth workspace</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#chatbot">AI Placement Chatbot</a>
+                <a href="#resume">Resume Analysis</a>
+                <a href="#mock">Mock Interview</a>
+                <a href="/student-companies">Companies</a>
+                <a href="/student-placement-drives">Placement Drives</a>
+                <a href="/student-placement-statistics">Placement Statistics</a>
+                <a href="/student-selected-students">Selected Students</a>
+                <a href="/student-interview-experiences">Interview Experiences</a>
+                <a href="#skill-gap">Skill Gap Analysis</a>
+                <a href="#roadmap">Preparation Roadmap</a>
+                <a href="/student-notices">Notices</a>
+                <a href="#notifications">Notifications</a>
+                <a href="#profile">Profile</a>
+            </nav>
+        </div>
+
+        <button class="ghost-btn logout-trigger" data-logout-role="student">Logout</button>
+    </aside>
+
+    <main class="dashboard-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Dashboard</p>
+                <h1>Welcome, Student</h1>
+            </div>
+            <div class="topbar-stat">
+                <span>Current Focus</span>
+                <strong>Placement Preparation</strong>
+            </div>
+        </header>
+
+        <section class="notice-preview-panel">
+            <div class="notice-preview-header">
+                <div>
+                    <p class="eyebrow">Latest Notices</p>
+                    <h2>Stay updated with current placement announcements.</h2>
+                </div>
+                <a class="primary-btn" href="/student-notices">View All Notices</a>
+            </div>
+            <div id="studentDashboardNoticePreview" class="notice-preview-grid"></div>
+            <div id="studentDashboardNoticeEmpty" class="notice-empty-state hidden">
+                No active notices right now. Please check again later.
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <article id="chatbot" class="feature-card wide-card">
+                <span class="card-tag">AI Guidance</span>
+                <h3>AI Placement Chatbot</h3>
+                <p>Future assistant space for placement queries, interview tips, and guidance.</p>
+            </article>
+            <article id="resume" class="feature-card">
+                <span class="card-tag">Documents</span>
+                <h3>Resume Analysis</h3>
+                <p>Prepare for a detailed AI review area with strengths, gaps, and suggestions.</p>
+            </article>
+            <article id="mock" class="feature-card">
+                <span class="card-tag">Practice</span>
+                <h3>Mock Interview</h3>
+                <p>Placeholder for interview simulations, scoring, and speaking confidence checks.</p>
+            </article>
+            <article id="drives" class="feature-card">
+                <span class="card-tag">Opportunities</span>
+                <h3>Company Drives</h3>
+                <p>Track upcoming drives, eligibility details, and application readiness.</p>
+                <a class="notice-inline-link" href="/student-placement-drives">Explore Drives</a>
+            </article>
+            <article id="stats" class="feature-card">
+                <span class="card-tag">Analytics</span>
+                <h3>Placement Statistics</h3>
+                <p>Explore overall placement trends, role demand, and outcome snapshots.</p>
+                <a class="notice-inline-link" href="/student-placement-statistics">Explore Statistics</a>
+            </article>
+            <article id="selected" class="feature-card">
+                <span class="card-tag">Motivation</span>
+                <h3>Selected Students</h3>
+                <p>See recent success stories and benchmark your own preparation journey.</p>
+                <a class="notice-inline-link" href="/student-selected-students">View Selected Students</a>
+            </article>
+            <article id="experiences" class="feature-card">
+                <span class="card-tag">Learning</span>
+                <h3>Interview Experiences</h3>
+                <p>Review peer experiences to understand patterns and expected rounds.</p>
+                <a class="notice-inline-link" href="/student-interview-experiences">Explore Experiences</a>
+            </article>
+            <article id="skill-gap" class="feature-card">
+                <span class="card-tag">Growth</span>
+                <h3>Skill Gap Analysis</h3>
+                <p>Future module for personalized readiness signals and suggested improvements.</p>
+            </article>
+            <article id="roadmap" class="feature-card">
+                <span class="card-tag">Planning</span>
+                <h3>Preparation Roadmap</h3>
+                <p>Organize learning milestones, interview practice, and placement goals.</p>
+            </article>
+            <article class="feature-card">
+                <span class="card-tag">Alerts</span>
+                <h3>Notices</h3>
+                <p>Check active college placement updates, deadlines, and admin announcements.</p>
+                <a class="notice-inline-link" href="/student-notices">Open Notices</a>
+            </article>
+            <article id="notifications" class="feature-card">
+                <span class="card-tag">Updates</span>
+                <h3>Notifications</h3>
+                <p>Dedicated space for new drives, deadlines, announcements, and reminders.</p>
+            </article>
+            <article id="profile" class="feature-card">
+                <span class="card-tag">Account</span>
+                <h3>Profile</h3>
+                <p>Placeholder profile area for academic details, skills, and preferences.</p>
+            </article>
+        </section>
+    </main>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/student-notices.js"></script>
+</body>
+</html>

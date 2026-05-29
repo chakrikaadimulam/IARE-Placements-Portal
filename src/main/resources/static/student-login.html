@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login | IARE AI Placement Portal</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body student-theme">
+<div class="background-orb orb-two"></div>
+<div class="background-orb orb-four"></div>
+
+<main class="auth-layout">
+    <section class="auth-info">
+        <a class="back-link" href="/">&larr; Back to portal</a>
+        <p class="eyebrow">Student Access</p>
+        <h1>Build confidence for every placement round with an AI-guided learning space.</h1>
+        <p>
+            Explore your preparation roadmap, discover company drives, practice interviews, and stay on top
+            of opportunities with a vibrant student dashboard.
+        </p>
+        <div class="credential-note">
+            <strong>Demo Credentials</strong>
+            <span>Username: student</span>
+            <span>Password: student123</span>
+        </div>
+    </section>
+
+    <section class="auth-card student-card-accent">
+        <div class="auth-card-header">
+            <span class="role-badge">Student Login</span>
+            <h2>Start your journey</h2>
+            <p>Sign in to continue to the student dashboard.</p>
+        </div>
+
+        <form id="studentLoginForm" class="auth-form" novalidate>
+            <label for="studentUsername">Username</label>
+            <input id="studentUsername" name="username" type="text" placeholder="Enter student username" required>
+
+            <label for="studentPassword">Password</label>
+            <input id="studentPassword" name="password" type="password" placeholder="Enter student password" required>
+
+            <p id="studentError" class="error-message" aria-live="polite"></p>
+            <button type="submit" class="primary-btn full-width">Login as Student</button>
+        </form>
+    </section>
+</main>
+
+<script src="/js/auth.js"></script>
+</body>
+</html>
