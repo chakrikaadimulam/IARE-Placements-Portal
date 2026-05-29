@@ -1,0 +1,295 @@
+  
+        /* Base Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Modern v0 Background */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8fafc;
+            color: #0f172a;
+            overflow: hidden;
+            padding: 1rem;
+        }
+
+        /* Entrance Animation for the whole card */
+        @keyframes slideUpFade {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modern v0 Card */
+        .login-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            padding: 2.5rem 2.5rem 3rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            text-align: center;
+            transition: all 0.3s ease;
+            animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 2rem 1.5rem;
+                border-radius: 12px;
+            }
+        }
+
+        /* Logo Integration */
+        .logo-container {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .logo-container img {
+            width: 160px;
+            height: auto;
+            border: none;
+            outline: none;
+            clip-path: inset(4px);
+        }
+
+        /* Form Structure */
+        .input-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            color: #334155;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* v0 Style Inputs */
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #0f172a;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .input-group input:hover {
+            border-color: #94a3b8;
+        }
+
+        .input-group input:focus {
+            border-color: #cbd5e1;
+            outline: 2px solid #0f172a;
+            outline-offset: 1px;
+        }
+
+        /* v0 Button */
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            background: #0f172a;
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            background: #1e293b;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* =========================================
+           ANIMATION & STATE CLASSES
+           ========================================= */
+
+        /* Loading Pulse */
+        @keyframes pulseLoad {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .btn-loading {
+            pointer-events: none;
+            animation: pulseLoad 1s infinite;
+        }
+
+        /* Hard Shake for Errors */
+        @keyframes hardShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-6px) rotate(-1deg);
+            }
+
+            40%,
+            80% {
+                transform: translateX(6px) rotate(1deg);
+            }
+        }
+
+        .shake {
+            animation: hardShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        /* Error States (Red) */
+        .error-input {
+            border-color: #ef4444 !important;
+            background-color: #fef2f2 !important;
+            color: #991b1b !important;
+        }
+
+        .error-input:focus {
+            outline: 2px solid #ef4444 !important;
+        }
+
+        .btn-error {
+            background: #ef4444 !important;
+            color: white !important;
+            transform: scale(0.98);
+        }
+
+        /* Success States (Green) */
+        @keyframes successPop {
+            0% {
+                transform: scale(1);
+            }
+
+            40% {
+                transform: scale(1.04);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .success-card {
+            animation: successPop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+        }
+
+        .success-input {
+            border-color: #10b981 !important;
+            background-color: #f0fdf4 !important;
+            color: #065f46 !important;
+        }
+
+        .btn-success {
+            background: #10b981 !important;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+        }
+
+
+/* Make login card match reference UI */
+
+.login-card {
+    width: 100% !important;
+    max-width: 500px !important;
+    padding: 50px 45px !important;
+    border-radius: 20px !important;
+}
+
+.logo-container {
+    margin-bottom: 40px !important;
+}
+
+.logo-container img {
+    width: 180px !important;
+    height: auto !important;
+}
+
+.input-group {
+    margin-bottom: 24px !important;
+}
+
+.input-group label {
+    font-size: 16px !important;
+    margin-bottom: 10px !important;
+}
+
+.input-group input {
+    width: 100% !important;
+    height: 56px !important;
+    font-size: 18px !important;
+    border-radius: 10px !important;
+    padding: 0 18px !important;
+}
+
+.login-btn {
+    width: 100% !important;
+    height: 56px !important;
+    margin-top: 18px !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+}
+
+/* Better center alignment */
+
+.student-login-page,
+body {
+    min-height: 100vh !important;
+}
+
+.login-page-wrapper {
+    min-height: 100vh !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+}
