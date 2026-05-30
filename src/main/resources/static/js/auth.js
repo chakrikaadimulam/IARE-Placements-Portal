@@ -7,40 +7,66 @@
             loginUrl: "/admin"
         },
         student: {
-            redirectUrl: "/student-dashboard",
-            loginUrl: "/student",
+            redirectUrl: "/student-dashboard.html",
+            loginUrl: "/student-login.html",
             apiLoginUrl: "/api/student/auth/login"
         }
     };
 
     const STORAGE_KEY = "placementPortalAuth";
+    const STORAGE_FALLBACKS = [sessionStorage, localStorage];
 
     function saveAuthState(authState) {
-        sessionStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify({
-                loginTime: new Date().toISOString(),
-                ...authState
-            })
-        );
+        const payload = JSON.stringify({
+            loginTime: new Date().toISOString(),
+            ...authState
+        });
+
+        STORAGE_FALLBACKS.forEach(function (storage) {
+            try {
+                storage.setItem(STORAGE_KEY, payload);
+            } catch (error) {
+                // Ignore storage write issues and continue with the remaining store.
+            }
+        });
     }
 
     function getAuthState() {
-        const storedValue = sessionStorage.getItem(STORAGE_KEY);
-        if (!storedValue) {
-            return null;
+        for (const storage of STORAGE_FALLBACKS) {
+            let storedValue = null;
+
+            try {
+                storedValue = storage.getItem(STORAGE_KEY);
+            } catch (error) {
+                storedValue = null;
+            }
+
+            if (!storedValue) {
+                continue;
+            }
+
+            try {
+                return JSON.parse(storedValue);
+            } catch (error) {
+                try {
+                    storage.removeItem(STORAGE_KEY);
+                } catch (removeError) {
+                    // Ignore broken storage cleanup failures.
+                }
+            }
         }
 
-        try {
-            return JSON.parse(storedValue);
-        } catch (error) {
-            sessionStorage.removeItem(STORAGE_KEY);
-            return null;
-        }
+        return null;
     }
 
     function clearAuthState() {
-        sessionStorage.removeItem(STORAGE_KEY);
+        STORAGE_FALLBACKS.forEach(function (storage) {
+            try {
+                storage.removeItem(STORAGE_KEY);
+            } catch (error) {
+                // Ignore storage cleanup failures.
+            }
+        });
     }
 
     async function postJson(url, payload) {
