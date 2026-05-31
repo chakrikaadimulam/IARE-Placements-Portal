@@ -631,3 +631,235 @@ body.student-companies-page::after {
         grid-template-columns: 1fr;
     }
 }
+/* ── SKELETON GRID ── */
+.loading-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Generate 6 skeleton cards via CSS only */
+.loading-skeleton-grid::before,
+.loading-skeleton-grid::after {
+    content: none;
+}
+
+.loading-skeleton-grid .skel-card {
+    display: none;
+}
+
+/* ── INJECT 6 CARDS using a trick: we need actual elements ── */
+/* Since the div is empty, we style it to show a grid of fake cards */
+.loading-skeleton-grid {
+    --skel-bg: #ffffff;
+    --skel-line: #ebebeb;
+    --skel-shine: #d8d8d8;
+}
+
+/* ── SKELETON CARD BASE ── */
+.company-card-skeleton {
+    background-color: #ffffff !important;
+    background-image: none !important;
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    min-height: 290px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    opacity: 1 !important;
+    animation: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* ── SHIMMER KEYFRAME ── */
+@keyframes skelShimmer {
+    0%   { background-position: -500px 0; }
+    100% { background-position:  500px 0; }
+}
+
+/* ── LOGO SQUARE (top left) ── */
+.company-card-skeleton::before {
+    content: '' !important;
+    display: block !important;
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 20px !important;
+    background-color: #ebebeb !important;
+    background-image: linear-gradient(
+        90deg,
+        #ebebeb 0%,
+        #d4d4d4 45%,
+        #ebebeb 100%
+    ) !important;
+    background-size: 500px 100% !important;
+    animation: skelShimmer 2s ease-in-out infinite !important;
+}
+
+/* ── ALL LINES (title + body + tags) ── */
+.company-card-skeleton::after {
+    content: '' !important;
+    display: block !important;
+    flex: 1 !important;
+    min-height: 195px !important;
+    background-image:
+        /* title line 1 */
+        linear-gradient(#ebebeb 13px, transparent 13px),
+        /* title line 2 */
+        linear-gradient(#ebebeb 10px, transparent 10px),
+        /* body line 1 */
+        linear-gradient(#ebebeb 10px, transparent 10px),
+        /* body line 2 */
+        linear-gradient(#ebebeb 10px, transparent 10px),
+        /* body line 3 short */
+        linear-gradient(#ebebeb 10px, transparent 10px),
+        /* tag 1 */
+        linear-gradient(#ebebeb 24px, transparent 24px),
+        /* tag 2 */
+        linear-gradient(#ebebeb 24px, transparent 24px) !important;
+    background-size:
+        78%  13px,
+        48%  10px,
+        100% 10px,
+        95%  10px,
+        60%  10px,
+        62px 24px,
+        78px 24px !important;
+    background-position:
+        0    0px,
+        0    24px,
+        0    64px,
+        0    82px,
+        0    100px,
+        0    150px,
+        72px 150px !important;
+    background-repeat: no-repeat !important;
+}
+
+/* ── STAGGERED SHIMMER DELAY per card ── */
+.company-card-skeleton:nth-child(1)::before { animation-delay: 0s !important; }
+.company-card-skeleton:nth-child(2)::before { animation-delay: 0.35s !important; }
+.company-card-skeleton:nth-child(3)::before { animation-delay: 0.7s !important; }
+.company-card-skeleton:nth-child(4)::before { animation-delay: 0.17s !important; }
+.company-card-skeleton:nth-child(5)::before { animation-delay: 0.52s !important; }
+.company-card-skeleton:nth-child(6)::before { animation-delay: 0.87s !important; }
+
+/* ── SLOW FADE-IN FOR HEADER, SEARCH & RESULTS ── */
+@keyframes smoothFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.statistics-page-header {
+    opacity: 0;
+    animation: smoothFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.05s;
+}
+
+.controls-section {
+    opacity: 0;
+    animation: smoothFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.3s;
+}
+
+.results-header {
+    opacity: 0;
+    animation: smoothFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.5s;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+    .loading-skeleton-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .company-card-skeleton:nth-child(5),
+    .company-card-skeleton:nth-child(6) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 650px) {
+    .loading-skeleton-grid {
+        grid-template-columns: 1fr;
+    }
+    .company-card-skeleton:nth-child(n+3) {
+        display: none !important;
+    }
+}
+@media (max-width: 1100px) {
+    .loading-skeleton-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .company-card-skeleton:nth-child(5),
+    .company-card-skeleton:nth-child(6) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 650px) {
+    .loading-skeleton-grid {
+        grid-template-columns: 1fr;
+    }
+    .company-card-skeleton:nth-child(n+3) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 400px) {
+    .company-card-skeleton:nth-child(n+2) {
+        display: none !important;
+    }
+}
+.company-card-skeleton {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: skeletonFadeUp 0.6s ease forwards;
+}
+
+.company-card-skeleton:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.company-card-skeleton:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.company-card-skeleton:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.company-card-skeleton:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.company-card-skeleton:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.company-card-skeleton:nth-child(6) {
+    animation-delay: 0.6s;
+}
+
+@keyframes skeletonFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
