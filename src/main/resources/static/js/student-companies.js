@@ -1,6 +1,13 @@
 (function () {
-    const COMPANIES_API = "/api/student/companies";
-    let allCompanies = [];
+    const COMPANIES_API = "/api/companies";
+    const PAGE_SIZE = 20;
+    const companiesPageCache = new Map();
+    let currentPage = 0;
+    let totalPages = 0;
+    let totalElements = 0;
+    let currentPageCompanies = [];
+    let isCompaniesLoading = false;
+    let activeCompaniesRequest = null;
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -16,9 +23,34 @@
         return normalized || fallback;
     }
 
-    async function fetchCompanies() {
-        const result = await window.apiClient.cachedGet('companies_v1', COMPANIES_API, 120000);
-        return Array.isArray(result.data) ? result.data : [];
+    function buildFallbackLogo(companyName) {
+        return '<div class="company-logo text-logo"><span>' + escapeHtml(safeText(companyName, "C").charAt(0).toUpperCase()) + "</span></div>";
+    }
+
+    async function fetchCompanies(page, signal) {
+        const safePage = Math.max(0, Number(page) || 0);
+        const url = COMPANIES_API + "?page=" + safePage + "&size=" + PAGE_SIZE;
+        const response = await fetch(url, {
+            method: "GET",
+            signal,
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load companies. Please try again.");
+        }
+
+        if (!payload || !Array.isArray(payload.content)) {
+            throw new Error("Invalid companies response received.");
+        }
+
+        return payload;
     }
 
     function populateSelect(id, values, defaultLabel) {
@@ -50,10 +82,18 @@
         const companyName = safeText(company.companyName, "C");
 
         if (company.logoUrl) {
-            return '<div class="company-logo"><img src="' + escapeHtml(company.logoUrl) + '" alt="' + escapeHtml(companyName) + ' logo"></div>';
+            return [
+                '<div class="company-logo">',
+                '<img src="', escapeHtml(company.logoUrl),
+                '" alt="', escapeHtml(companyName), ' logo" loading="lazy" decoding="async" width="60" height="60"',
+                ' onerror="this.closest(\'.company-logo\').outerHTML=', "'",
+                buildFallbackLogo(companyName).replace(/'/g, "\\'"),
+                "'", ';">',
+                '</div>'
+            ].join("");
         }
 
-        return '<div class="company-logo text-logo"><span>' + escapeHtml(companyName.charAt(0).toUpperCase()) + "</span></div>";
+        return buildFallbackLogo(companyName);
     }
 
     function buildSearchText(company) {
@@ -72,6 +112,37 @@
         }
     }
 
+    function updatePaginationControls() {
+        const prevButton = document.getElementById("companiesPrevButton");
+        const nextButton = document.getElementById("companiesNextButton");
+        const pageInfo = document.getElementById("companiesPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = isCompaniesLoading || currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = isCompaniesLoading || totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
+
+    function setListLoading(isLoading, initialLoad) {
+        const loadingElement = document.getElementById("studentCompaniesLoading");
+        const list = document.getElementById("companiesGrid");
+        const loadingHint = document.getElementById("companiesPageLoadingHint");
+        if (loadingElement) {
+            loadingElement.classList.toggle("hidden", !(isLoading && initialLoad));
+        }
+        if (list) {
+            list.classList.toggle("hidden", isLoading && initialLoad);
+        }
+        if (loadingHint) {
+            loadingHint.classList.toggle("hidden", !(isLoading && !initialLoad));
+        }
+    }
+
     function renderCompanies(companies) {
         const loadingElement = document.getElementById("studentCompaniesLoading");
         const list = document.getElementById("companiesGrid");
@@ -84,12 +155,18 @@
             return;
         }
 
-        list.innerHTML = "";
+        let markup = "";
         updateCompanyCount(companies.length);
+        updatePaginationControls();
 
         if (!companies.length) {
             list.classList.add("hidden");
             emptyState.classList.remove("hidden");
+            emptyState.innerHTML = [
+                '<i data-lucide="building-2"></i>',
+                '<h3>No companies available yet.</h3>',
+                '<p>Try again later or check another page.</p>'
+            ].join("");
             initLucideIcons();
             return;
         }
@@ -105,9 +182,8 @@
             const headquarters = safeText(company.headquarters, "N/A");
             const foundedYear = safeText(company.foundedYear, "N/A");
 
-            const card = document.createElement("article");
-            card.className = "company-card card";
-            card.innerHTML = [
+            markup += [
+                '<article class="company-card card">',
                 '<div class="company-header">',
                 getLogoMarkup(company),
                 '<div class="company-titles">',
@@ -125,29 +201,25 @@
                 "</div>",
                 company.websiteUrl
                     ? '<a href="' + escapeHtml(company.websiteUrl) + '" target="_blank" rel="noopener noreferrer" class="btn-visit ripple-container">Visit Website</a>'
-                    : '<span class="btn-visit" aria-disabled="true">Visit Website</span>'
+                    : '<span class="btn-visit" aria-disabled="true">Visit Website</span>',
+                '</article>'
             ].join("");
-
-            const rippleTarget = card.querySelector(".ripple-container");
-            if (rippleTarget) {
-                rippleTarget.addEventListener("click", function (event) {
-                    addRipple(event, rippleTarget);
-                });
-            }
-
-            list.appendChild(card);
         });
+        list.innerHTML = markup;
 
         initCardObserver();
         initLucideIcons();
     }
 
     function filterCompanies() {
-        const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
-        const typeValue = document.getElementById("typeFilter").value;
-        const industryValue = document.getElementById("industryFilter").value;
+        const searchInput = document.getElementById("searchInput");
+        const typeFilter = document.getElementById("typeFilter");
+        const industryFilter = document.getElementById("industryFilter");
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+        const typeValue = typeFilter ? typeFilter.value : "";
+        const industryValue = industryFilter ? industryFilter.value : "";
 
-        const filteredCompanies = allCompanies.filter(function (company) {
+        const filteredCompanies = currentPageCompanies.filter(function (company) {
             const matchesSearch = !searchTerm || buildSearchText(company).includes(searchTerm);
             const matchesType = !typeValue || safeText(company.companyType, "N/A") === typeValue;
             const matchesIndustry = !industryValue || safeText(company.industry, "N/A") === industryValue;
@@ -161,15 +233,19 @@
     function showError(message) {
         const loadingElement = document.getElementById("studentCompaniesLoading");
         const emptyState = document.getElementById("studentCompaniesEmpty");
+        const list = document.getElementById("companiesGrid");
 
         if (loadingElement) {
             loadingElement.classList.add("hidden");
+        }
+        if (list) {
+            list.classList.add("hidden");
         }
         if (emptyState) {
             emptyState.innerHTML = [
                 '<i data-lucide="building-2"></i>',
                 '<h3>No companies found</h3>',
-                '<p>', escapeHtml(message || "Unable to load companies right now."), '</p>'
+                '<p>', escapeHtml(message || "Unable to load companies. Please try again."), '</p>'
             ].join("");
             emptyState.classList.remove("hidden");
         }
@@ -186,6 +262,21 @@
         if (searchInput) searchInput.addEventListener("input", filterCompanies);
         if (typeFilter) typeFilter.addEventListener("change", filterCompanies);
         if (industryFilter) industryFilter.addEventListener("change", filterCompanies);
+    }
+
+    function bindRippleEffects() {
+        const list = document.getElementById("companiesGrid");
+        if (!list || list.dataset.rippleBound === "true") {
+            return;
+        }
+
+        list.addEventListener("click", function (event) {
+            const rippleTarget = event.target.closest(".ripple-container");
+            if (rippleTarget) {
+                addRipple(event, rippleTarget);
+            }
+        });
+        list.dataset.rippleBound = "true";
     }
 
     function addRipple(event, element) {
@@ -243,6 +334,7 @@
         }
 
         cards.forEach(function (card) {
+            observer.unobserve(card);
             observer.observe(card);
         });
     }
@@ -263,34 +355,124 @@
         }
     }
 
+    function storePageInCache(page, payload) {
+        companiesPageCache.set(Number(page) || 0, payload);
+    }
+
+    function getCachedPage(page) {
+        return companiesPageCache.get(Number(page) || 0) || null;
+    }
+
+    async function prefetchCompaniesPage(page) {
+        const safePage = Number(page) || 0;
+        if (safePage < 0 || safePage >= totalPages || getCachedPage(safePage)) {
+            return;
+        }
+
+        const controller = new AbortController();
+        try {
+            const payload = await fetchCompanies(safePage, controller.signal);
+            storePageInCache(safePage, payload);
+        } catch (error) {
+            console.error("Failed to prefetch companies page:", safePage, error);
+        }
+    }
+
+    function applyPagePayload(payload) {
+        currentPage = Number(payload.page) || 0;
+        totalPages = Number(payload.totalPages) || 0;
+        totalElements = Number(payload.totalElements) || 0;
+        currentPageCompanies = Array.isArray(payload.content) ? payload.content : [];
+
+        populateFilters(currentPageCompanies);
+        filterCompanies();
+        void prefetchCompaniesPage(currentPage + 1);
+    }
+
+    async function loadCompanies(page, options) {
+        options = options || {};
+        const safePage = Math.max(0, Number(page) || 0);
+        const initialLoad = Boolean(options.initialLoad);
+
+        if (isCompaniesLoading && !options.force) {
+            return;
+        }
+
+        const cachedPage = getCachedPage(safePage);
+        if (cachedPage) {
+            applyPagePayload(cachedPage);
+            console.time("companies-page-load");
+            console.timeEnd("companies-page-load");
+            return;
+        }
+
+        if (activeCompaniesRequest) {
+            activeCompaniesRequest.abort();
+        }
+
+        activeCompaniesRequest = new AbortController();
+        isCompaniesLoading = true;
+        updatePaginationControls();
+        setListLoading(true, initialLoad);
+        console.time("companies-page-load");
+        try {
+            const payload = await fetchCompanies(safePage, activeCompaniesRequest.signal);
+            storePageInCache(safePage, payload);
+            applyPagePayload(payload);
+
+            if (!currentPageCompanies.length && currentPage > 0 && totalPages > 0) {
+                await loadCompanies(totalPages - 1, { force: true });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("Failed to load paginated companies:", error);
+            totalPages = 0;
+            totalElements = 0;
+            currentPageCompanies = [];
+            updatePaginationControls();
+            showError("Unable to load companies. Please try again.");
+        } finally {
+            console.timeEnd("companies-page-load");
+            isCompaniesLoading = false;
+            activeCompaniesRequest = null;
+            updatePaginationControls();
+            setListLoading(false, initialLoad);
+        }
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById("companiesPrevButton");
+        const nextButton = document.getElementById("companiesNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    loadCompanies(currentPage - 1, { initialLoad: false });
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages - 1) {
+                    loadCompanies(currentPage + 1, { initialLoad: false });
+                }
+            });
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", async function () {
         initLucideIcons();
         initScrollProgress();
         setupBackButton();
+        bindRippleEffects();
+        setupFilters();
+        setupPagination();
+        updatePaginationControls();
 
-        try {
-            allCompanies = await fetchCompanies();
-            populateFilters(allCompanies);
-            setupFilters();
-            renderCompanies(allCompanies);
-        } catch (error) {
-            // If server is waking up, keep loader and retry once
-            if (error && error.code === 'server_wake') {
-                const loading = document.getElementById('studentCompaniesLoading');
-                if (loading) loading.classList.remove('hidden');
-                setTimeout(async function () {
-                    try {
-                        allCompanies = await fetchCompanies();
-                        populateFilters(allCompanies);
-                        renderCompanies(allCompanies);
-                    } catch (err) {
-                        showError("Unable to load companies. Please refresh.");
-                    }
-                }, 2000);
-                return;
-            }
-
-            showError("Unable to load companies. Please refresh.");
-        }
+        await loadCompanies(0, { initialLoad: true });
     });
 })();

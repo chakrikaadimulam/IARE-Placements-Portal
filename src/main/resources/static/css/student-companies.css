@@ -177,6 +177,11 @@ body.student-companies-page::after {
 
 .results-header {
     margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .results-count {
@@ -195,6 +200,47 @@ body.student-companies-page::after {
     gap: 1.5rem;
 }
 
+.pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    border: 1px solid #d4d4d4;
+    background: #ffffff;
+    color: #0a0a0a;
+    border-radius: 9999px;
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f4f4f4;
+}
+
+.pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: #404040;
+    font-weight: 600;
+}
+
+.page-loading-hint {
+    margin: -0.25rem 0 1rem;
+    color: #737373;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
 .company-card {
     background: #ffffff;
     border: 1px solid #e5e5e5;
@@ -209,6 +255,31 @@ body.student-companies-page::after {
     opacity: 0;
     transform: translateY(30px);
     transition: opacity 0.6s ease-out, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.loading-skeleton-grid {
+    margin-bottom: 1.5rem;
+}
+
+.company-card-skeleton {
+    min-height: 290px;
+    opacity: 1;
+    transform: none;
+    border-color: #ececec;
+    background:
+        linear-gradient(90deg, rgba(244, 244, 244, 0.9) 25%, rgba(229, 229, 229, 0.95) 50%, rgba(244, 244, 244, 0.9) 75%);
+    background-size: 220% 100%;
+    animation: skeletonPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonPulse {
+    0% {
+        background-position: 100% 0;
+    }
+
+    100% {
+        background-position: -100% 0;
+    }
 }
 
 .company-card.visible {
@@ -422,6 +493,10 @@ body.student-companies-page::after {
 
     .statistics-page-header {
         gap: 0.85rem;
+    }
+
+    .results-header {
+        align-items: flex-start;
     }
 
     .back-btn {

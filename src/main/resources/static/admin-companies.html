@@ -42,76 +42,112 @@
         </header>
 
         <section class="admin-companies-layout">
-            <article class="admin-company-form-card">
-                <div class="company-section-head">
-                    <span class="card-tag">Create Company</span>
-                    <h2>Add a company profile</h2>
-                    <p>Store recruiter information in the portal database so it is available across all student sessions.</p>
-                </div>
-
-                <form id="adminCompanyForm" class="company-form" novalidate>
-                    <input id="editingCompanyId" name="editingCompanyId" type="hidden">
-
-                    <label for="companyName">Company Name</label>
-                    <input id="companyName" name="companyName" type="text" placeholder="Enter company name" required>
-
-                    <label for="logoUrl">Company Logo URL</label>
-                    <input id="logoUrl" name="logoUrl" type="url" placeholder="https://example.com/logo.png">
-
-                    <label for="websiteUrl">Company Website URL</label>
-                    <input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://company.com">
-
-                    <div class="company-form-grid">
-                        <div>
-                            <label for="companyType">Company Type</label>
-                            <select id="companyType" name="companyType" required>
-                                <option value="">Select company type</option>
-                                <option>Product Based</option>
-                                <option>Service Based</option>
-                                <option>Startup</option>
-                                <option>MNC</option>
-                                <option>Core</option>
-                                <option>Consulting</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="industry">Industry</label>
-                            <select id="industry" name="industry" required>
-                                <option value="">Select industry</option>
-                                <option>Software</option>
-                                <option>IT Services</option>
-                                <option>AI/ML</option>
-                                <option>Finance</option>
-                                <option>Electronics</option>
-                                <option>Mechanical</option>
-                                <option>Consulting</option>
-                            </select>
-                        </div>
+            <div class="admin-company-side-panel">
+                <article class="admin-company-form-card">
+                    <div class="company-section-head">
+                        <span class="card-tag">Create Company</span>
+                        <h2>Add a company profile</h2>
+                        <p>Store recruiter information in the portal database so it is available across all student sessions.</p>
                     </div>
 
-                    <div class="company-form-grid">
-                        <div>
-                            <label for="headquarters">Headquarters</label>
-                            <input id="headquarters" name="headquarters" type="text" placeholder="City, Country">
+                    <form id="adminCompanyForm" class="company-form" novalidate>
+                        <input id="editingCompanyId" name="editingCompanyId" type="hidden">
+
+                        <label for="companyName">Company Name</label>
+                        <input id="companyName" name="companyName" type="text" placeholder="Enter company name" required>
+
+                        <label for="logoUrl">Company Logo URL</label>
+                        <input id="logoUrl" name="logoUrl" type="url" placeholder="https://example.com/logo.png">
+
+                        <label for="websiteUrl">Company Website URL</label>
+                        <input id="websiteUrl" name="websiteUrl" type="url" placeholder="https://company.com">
+
+                        <div class="company-form-grid">
+                            <div>
+                                <label for="companyType">Company Type</label>
+                                <select id="companyType" name="companyType" required>
+                                    <option value="">Select company type</option>
+                                    <option>Product Based</option>
+                                    <option>Service Based</option>
+                                    <option>Startup</option>
+                                    <option>MNC</option>
+                                    <option>Core</option>
+                                    <option>Consulting</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="industry">Industry</label>
+                                <select id="industry" name="industry" required>
+                                    <option value="">Select industry</option>
+                                    <option>Software</option>
+                                    <option>IT Services</option>
+                                    <option>AI/ML</option>
+                                    <option>Finance</option>
+                                    <option>Electronics</option>
+                                    <option>Mechanical</option>
+                                    <option>Consulting</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label for="foundedYear">Founded Year</label>
-                            <input id="foundedYear" name="foundedYear" type="number" min="1900" max="2100" placeholder="2020">
+
+                        <div class="company-form-grid">
+                            <div>
+                                <label for="headquarters">Headquarters</label>
+                                <input id="headquarters" name="headquarters" type="text" placeholder="City, Country">
+                            </div>
+                            <div>
+                                <label for="foundedYear">Founded Year</label>
+                                <input id="foundedYear" name="foundedYear" type="number" min="1900" max="2100" placeholder="2020">
+                            </div>
                         </div>
+
+                        <label for="description">Company Description</label>
+                        <textarea id="description" name="description" rows="6" placeholder="Describe the company, its focus, and placement relevance" required></textarea>
+
+                        <p id="adminCompanySuccess" class="success-message hidden" aria-live="polite"></p>
+                        <p id="adminCompanyError" class="error-message" aria-live="polite"></p>
+
+                        <div class="company-form-actions">
+                            <button id="submitCompanyButton" type="submit" class="primary-btn">Add Company</button>
+                            <button id="cancelCompanyEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="admin-company-form-card">
+                    <div class="company-section-head">
+                        <span class="card-tag">Excel Upload</span>
+                        <h2>Upload companies Excel</h2>
+                        <p>Import `.xlsx` or `.xls` files. Existing company names will be updated, and new company names will be inserted.</p>
                     </div>
 
-                    <label for="description">Company Description</label>
-                    <textarea id="description" name="description" rows="6" placeholder="Describe the company, its focus, and placement relevance" required></textarea>
+                    <form id="companyUploadForm" class="company-form" novalidate>
+                        <label for="companyExcelFile">Companies Excel File</label>
+                        <input id="companyExcelFile" name="file" type="file" accept=".xlsx,.xls" required>
+                        <p id="companyUploadFileName" class="upload-file-name">No file selected</p>
+                        <p id="companyUploadSuccess" class="success-message hidden" aria-live="polite"></p>
+                        <p id="companyUploadError" class="error-message" aria-live="polite"></p>
 
-                    <p id="adminCompanySuccess" class="success-message hidden" aria-live="polite"></p>
-                    <p id="adminCompanyError" class="error-message" aria-live="polite"></p>
+                        <div class="company-form-actions">
+                            <button id="companyUploadButton" type="submit" class="primary-btn">Upload Companies</button>
+                        </div>
+                    </form>
 
-                    <div class="company-form-actions">
-                        <button id="submitCompanyButton" type="submit" class="primary-btn">Add Company</button>
-                        <button id="cancelCompanyEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                    <div id="companyUploadSummary" class="upload-summary hidden">
+                        <h3>Upload Summary</h3>
+                        <div class="summary-grid">
+                            <div><span>Total Rows</span><strong id="companySummaryTotalRows">0</strong></div>
+                            <div><span>Inserted</span><strong id="companySummaryInserted">0</strong></div>
+                            <div><span>Updated</span><strong id="companySummaryUpdated">0</strong></div>
+                            <div><span>Skipped</span><strong id="companySummarySkipped">0</strong></div>
+                        </div>
+                        <div>
+                            <h4>Errors</h4>
+                            <ul id="companyUploadErrors" class="error-list"></ul>
+                        </div>
                     </div>
-                </form>
-            </article>
+                </article>
+            </div>
 
             <article class="admin-company-list-card">
                 <div class="company-section-head">
@@ -124,6 +160,12 @@
                 <div id="adminCompanyList" class="company-list"></div>
                 <div id="adminCompanyEmpty" class="company-empty-state hidden">
                     No companies added yet. Create your first company profile to get started.
+                </div>
+                <p id="adminCompaniesPageLoadingHint" class="company-pagination-info hidden" aria-live="polite">Loading next page...</p>
+                <div class="company-pagination">
+                    <button id="adminCompaniesPrevButton" type="button" class="secondary-btn">Previous</button>
+                    <span id="adminCompaniesPageInfo" class="company-pagination-info">Page 0 of 0</span>
+                    <button id="adminCompaniesNextButton" type="button" class="secondary-btn">Next</button>
                 </div>
             </article>
         </section>

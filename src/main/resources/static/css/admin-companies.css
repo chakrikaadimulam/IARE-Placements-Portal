@@ -4,6 +4,12 @@
     gap: 22px;
 }
 
+.admin-company-side-panel {
+    display: grid;
+    gap: 22px;
+    align-content: start;
+}
+
 .admin-company-form-card,
 .admin-company-list-card,
 .admin-company-item {
@@ -83,6 +89,12 @@
     gap: 12px;
     flex-wrap: wrap;
     margin-top: 8px;
+}
+
+.upload-file-name {
+    margin: -4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
 }
 
 .success-message {
@@ -227,6 +239,70 @@
     text-align: center;
 }
 
+.company-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.company-pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.upload-summary {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.upload-summary h3,
+.upload-summary h4 {
+    margin: 0 0 14px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.summary-grid div {
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summary-grid span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+}
+
+.summary-grid strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 1.2rem;
+}
+
+.error-list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-secondary);
+}
+
+.error-list li + li {
+    margin-top: 8px;
+}
+
 .hidden {
     display: none !important;
 }
@@ -253,5 +329,9 @@
 
     .company-item-title {
         align-items: flex-start;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
     }
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Lob;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -13,7 +14,13 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "companies")
+@Table(
+        name = "companies",
+        indexes = {
+                @Index(name = "idx_company_name", columnList = "company_name"),
+                @Index(name = "idx_company_active", columnList = "active")
+        }
+)
 public class Company {
 
     @Id

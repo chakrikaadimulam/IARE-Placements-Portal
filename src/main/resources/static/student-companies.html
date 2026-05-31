@@ -46,13 +46,19 @@
             <div class="results-count">
                 <span id="companyCount">0</span> profiles found
             </div>
+            <div class="pagination-controls">
+                <button id="companiesPrevButton" class="pagination-btn" type="button">Previous</button>
+                <span id="companiesPageInfo" class="pagination-info">Page 0 of 0</span>
+                <button id="companiesNextButton" class="pagination-btn" type="button">Next</button>
+            </div>
         </div>
+        <p id="companiesPageLoadingHint" class="page-loading-hint hidden" aria-live="polite">Loading next page...</p>
 
         <section>
-            <div id="studentCompaniesLoading" class="empty-state loading-state">
-                <i data-lucide="building-2"></i>
-                <h3>Loading companies...</h3>
-                <p>Please wait while we fetch company profiles.</p>
+            <div id="studentCompaniesLoading" class="cards-grid loading-skeleton-grid">
+                <article class="company-card company-card-skeleton"></article>
+                <article class="company-card company-card-skeleton"></article>
+                <article class="company-card company-card-skeleton"></article>
             </div>
 
             <div class="cards-grid" id="companiesGrid"></div>
