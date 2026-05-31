@@ -1,15 +1,45 @@
 (function () {
     const DRIVES_API = "/api/admin/placement-drives";
+    const DRIVE_UPLOAD_API = "/api/admin/placement-drives/upload";
     const COMPANIES_API = "/api/admin/companies";
     const DEFAULT_EMPTY_MESSAGE = "No placement drives added yet. Create your first drive to get started.";
+    const DRIVE_TEMPLATE_HEADERS = [
+        "S.No",
+        "Company",
+        "Drive Title",
+        "Hiring Year",
+        "Hiring Date",
+        "Hiring Mode",
+        "Hiring Location",
+        "Drive Status",
+        "Eligible Branches",
+        "Eligible CGPA",
+        "Job Type",
+        "CTC Package",
+        "Stipend",
+        "Bond Details",
+        "Backlogs Allowed",
+        "Max Backlogs",
+        "No. of Rounds",
+        "Round Names",
+        "Registration Deadline",
+        "Exam Date",
+        "Interview Date",
+        "Description"
+    ];
     let companies = [];
 
     async function fetchJson(url, options) {
+        const requestOptions = { ...(options || {}) };
+        const headers = { ...(requestOptions.headers || {}) };
+
+        if (!(requestOptions.body instanceof FormData) && !headers["Content-Type"]) {
+            headers["Content-Type"] = "application/json";
+        }
+
         const response = await fetch(url, {
-            headers: {
-                "Content-Type": "application/json"
-            },
-            ...options
+            ...requestOptions,
+            headers
         });
 
         if (response.status === 204) {
@@ -72,12 +102,53 @@
         errorElement.textContent = "";
     }
 
+    function setUploadFeedback(message, isError) {
+        const successElement = document.getElementById("placementDriveUploadSuccess");
+        const errorElement = document.getElementById("placementDriveUploadError");
+        if (!successElement || !errorElement) {
+            return;
+        }
+
+        if (isError) {
+            successElement.textContent = "";
+            successElement.classList.add("hidden");
+            errorElement.textContent = message;
+            return;
+        }
+
+        errorElement.textContent = "";
+        successElement.textContent = message;
+        successElement.classList.remove("hidden");
+    }
+
+    function clearUploadFeedback() {
+        const successElement = document.getElementById("placementDriveUploadSuccess");
+        const errorElement = document.getElementById("placementDriveUploadError");
+        if (!successElement || !errorElement) {
+            return;
+        }
+
+        successElement.textContent = "";
+        successElement.classList.add("hidden");
+        errorElement.textContent = "";
+    }
+
     function setLoading(isLoading) {
         const submitButton = document.getElementById("submitDriveButton");
         submitButton.disabled = isLoading;
         submitButton.textContent = isLoading
             ? "Saving..."
             : (document.getElementById("editingDriveId").value ? "Update Drive" : "Add Drive");
+    }
+
+    function setUploadLoading(isLoading) {
+        const uploadButton = document.getElementById("placementDriveUploadButton");
+        if (!uploadButton) {
+            return;
+        }
+
+        uploadButton.disabled = isLoading;
+        uploadButton.textContent = isLoading ? "Uploading..." : "Upload Drives";
     }
 
     function renderCompanyOptions() {
@@ -138,6 +209,50 @@
         document.getElementById("cancelDriveEditButton").classList.add("hidden");
         renderCompanyPreview("");
         clearFeedback();
+    }
+
+    function setUploadSummary(summary) {
+        const summaryCard = document.getElementById("placementDriveUploadSummary");
+        const totalRows = document.getElementById("placementDriveSummaryTotalRows");
+        const successCount = document.getElementById("placementDriveSummarySuccess");
+        const failedCount = document.getElementById("placementDriveSummaryFailed");
+        const errorList = document.getElementById("placementDriveUploadErrors");
+
+        if (!summaryCard || !totalRows || !successCount || !failedCount || !errorList) {
+            return;
+        }
+
+        totalRows.textContent = String(summary.totalRows || 0);
+        successCount.textContent = String(summary.successCount || 0);
+        failedCount.textContent = String(summary.failedCount || 0);
+
+        errorList.innerHTML = "";
+        (summary.errors || []).forEach(function (error) {
+            const item = document.createElement("li");
+            const companyLabel = error.companyName ? " (" + error.companyName + ")" : "";
+            item.textContent = "Row " + error.rowNumber + companyLabel + ": " + error.reason;
+            errorList.appendChild(item);
+        });
+
+        if (!(summary.errors || []).length) {
+            const item = document.createElement("li");
+            item.textContent = "No row errors.";
+            errorList.appendChild(item);
+        }
+
+        summaryCard.classList.remove("hidden");
+    }
+
+    function buildUploadErrorMessage(payload) {
+        if (!payload) {
+            return "Unable to upload placement drive Excel.";
+        }
+
+        if (payload.message && payload.error) {
+            return payload.message + ": " + payload.error;
+        }
+
+        return payload.message || payload.error || "Unable to upload placement drive Excel.";
     }
 
     function populateForm(drive) {
@@ -387,6 +502,78 @@
         });
     }
 
+    function downloadTemplate() {
+        const csvContent = [DRIVE_TEMPLATE_HEADERS.join(",")].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "placement-drives-template.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function setupUpload() {
+        const form = document.getElementById("placementDriveUploadForm");
+        const fileInput = document.getElementById("placementDriveExcelFile");
+        const fileName = document.getElementById("placementDriveUploadFileName");
+        const templateButton = document.getElementById("placementDriveTemplateButton");
+
+        if (templateButton) {
+            templateButton.addEventListener("click", downloadTemplate);
+        }
+
+        if (!form || !fileInput || !fileName) {
+            return;
+        }
+
+        fileInput.addEventListener("change", function () {
+            fileName.textContent = fileInput.files && fileInput.files[0] ? fileInput.files[0].name : "No file selected";
+        });
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            if (!fileInput.files || !fileInput.files[0]) {
+                setUploadFeedback("Please select an Excel file first.", true);
+                return;
+            }
+
+            clearUploadFeedback();
+            setUploadLoading(true);
+
+            try {
+                const formData = new FormData();
+                formData.append("file", fileInput.files[0]);
+
+                const response = await fetch(DRIVE_UPLOAD_API, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const payload = await response.json().catch(function () {
+                    return null;
+                });
+
+                if (!response.ok) {
+                    throw new Error(buildUploadErrorMessage(payload));
+                }
+
+                setUploadSummary(payload || {});
+                setUploadFeedback("Placement drives uploaded successfully.", false);
+                form.reset();
+                fileName.textContent = "No file selected";
+                await loadDrives();
+            } catch (error) {
+                setUploadFeedback(error.message || "Unable to upload placement drive Excel.", true);
+            } finally {
+                setUploadLoading(false);
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", async function () {
         if (!document.getElementById("placementDriveForm")) {
             return;
@@ -395,6 +582,7 @@
         try {
             await loadCompanies();
             setupForm();
+            setupUpload();
             await loadDrives();
         } catch (error) {
             setFeedback(error.message || "Unable to initialize placement drive management.", true);

@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -53,6 +52,7 @@ public class PlacementDrive {
 
     private Integer maxBacklogs;
 
+    @Column(columnDefinition = "TEXT")
     private String bondDetails;
 
     @Column(nullable = false)
@@ -65,6 +65,7 @@ public class PlacementDrive {
 
     private Integer numberOfRounds;
 
+    @Column(columnDefinition = "TEXT")
     private String roundNames;
 
     private LocalDate registrationDeadline;
@@ -76,7 +77,7 @@ public class PlacementDrive {
     @Column(nullable = false)
     private String driveStatus;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)

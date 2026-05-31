@@ -1,9 +1,13 @@
 package com.iare.placementportal.controller;
 
+import com.iare.placementportal.dto.ApiErrorResponse;
+import com.iare.placementportal.dto.PlacementDriveExcelUploadResponse;
 import com.iare.placementportal.dto.PlacementDriveRequest;
 import com.iare.placementportal.dto.PlacementDriveResponse;
 import com.iare.placementportal.service.PlacementDriveService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -33,6 +40,28 @@ public class PlacementDriveController {
     @ResponseStatus(HttpStatus.CREATED)
     public PlacementDriveResponse createDrive(@Valid @RequestBody PlacementDriveRequest request) {
         return placementDriveService.createDrive(request);
+    }
+
+    @PostMapping(
+            value = {"/api/admin/placement-drives/upload", "/admin/placement-drives/upload"},
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> uploadPlacementDrives(@RequestParam("file") MultipartFile file) {
+        try {
+            PlacementDriveExcelUploadResponse response = placementDriveService.uploadDrivesFromExcel(file);
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException exception) {
+            HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+            return ResponseEntity.status(status)
+                    .body(new ApiErrorResponse(exception.getReason(), null, LocalDateTime.now()));
+        } catch (Exception exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiErrorResponse(
+                            "Unable to upload placement drive Excel file.",
+                            exception.getMessage(),
+                            LocalDateTime.now()
+                    ));
+        }
     }
 
     @GetMapping("/api/admin/placement-drives")

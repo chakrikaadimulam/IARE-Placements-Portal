@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -43,21 +42,19 @@ public class InterviewExperience {
     @Column(nullable = false)
     private String roundsFaced;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String questionsAsked;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String codingQuestions;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String technicalTopics;
 
-    @Lob
+    @Column(columnDefinition = "TEXT")
     private String hrQuestions;
 
-    @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String preparationTips;
 
     @Column(nullable = false)

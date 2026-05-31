@@ -42,157 +42,193 @@
         </header>
 
         <section class="admin-drive-layout">
-            <article class="admin-drive-form-card">
-                <div class="drive-section-head">
-                    <span class="card-tag">Create Drive</span>
-                    <h2>Add placement drive details</h2>
-                    <p>Create year-wise and date-wise company hiring records linked to the company master data.</p>
-                </div>
-
-                <form id="placementDriveForm" class="drive-form" novalidate>
-                    <input id="editingDriveId" name="editingDriveId" type="hidden">
-
-                    <label for="companyId">Company</label>
-                    <select id="companyId" name="companyId" required>
-                        <option value="">Select company</option>
-                    </select>
-
-                    <div id="companyPreview" class="company-preview hidden"></div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="driveTitle">Drive Title</label>
-                            <input id="driveTitle" name="driveTitle" type="text" placeholder="Infosys Campus Drive 2025" required>
-                        </div>
-                        <div>
-                            <label for="hiringYear">Hiring Year</label>
-                            <input id="hiringYear" name="hiringYear" type="number" min="2000" max="2100" placeholder="2025" required>
-                        </div>
+            <div class="admin-drive-side-panel">
+                <article class="admin-drive-form-card">
+                    <div class="drive-section-head">
+                        <span class="card-tag">Create Drive</span>
+                        <h2>Add placement drive details</h2>
+                        <p>Create year-wise and date-wise company hiring records linked to the company master data.</p>
                     </div>
 
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="hiringDate">Hiring Date</label>
-                            <input id="hiringDate" name="hiringDate" type="date" required>
+                    <form id="placementDriveForm" class="drive-form" novalidate>
+                        <input id="editingDriveId" name="editingDriveId" type="hidden">
+
+                        <label for="companyId">Company</label>
+                        <select id="companyId" name="companyId" required>
+                            <option value="">Select company</option>
+                        </select>
+
+                        <div id="companyPreview" class="company-preview hidden"></div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="driveTitle">Drive Title</label>
+                                <input id="driveTitle" name="driveTitle" type="text" placeholder="Infosys Campus Drive 2025" required>
+                            </div>
+                            <div>
+                                <label for="hiringYear">Hiring Year</label>
+                                <input id="hiringYear" name="hiringYear" type="number" min="2000" max="2100" placeholder="2025" required>
+                            </div>
                         </div>
-                        <div>
-                            <label for="hiringMode">Hiring Mode</label>
-                            <select id="hiringMode" name="hiringMode" required>
-                                <option value="">Select mode</option>
-                                <option>Online</option>
-                                <option>Offline</option>
-                                <option>Hybrid</option>
-                            </select>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="hiringDate">Hiring Date</label>
+                                <input id="hiringDate" name="hiringDate" type="date" required>
+                            </div>
+                            <div>
+                                <label for="hiringMode">Hiring Mode</label>
+                                <select id="hiringMode" name="hiringMode" required>
+                                    <option value="">Select mode</option>
+                                    <option>Online</option>
+                                    <option>Offline</option>
+                                    <option>Hybrid</option>
+                                </select>
+                            </div>
                         </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="hiringLocation">Hiring Location</label>
+                                <input id="hiringLocation" name="hiringLocation" type="text" placeholder="Hyderabad">
+                            </div>
+                            <div>
+                                <label for="driveStatus">Drive Status</label>
+                                <select id="driveStatus" name="driveStatus" required>
+                                    <option value="">Select status</option>
+                                    <option>Upcoming</option>
+                                    <option>Ongoing</option>
+                                    <option>Completed</option>
+                                    <option>Closed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="eligibleBranches">Eligible Branches</label>
+                                <input id="eligibleBranches" name="eligibleBranches" type="text" placeholder="CSE, IT, ECE, EEE" required>
+                            </div>
+                            <div>
+                                <label for="eligibleCgpa">Eligible CGPA</label>
+                                <input id="eligibleCgpa" name="eligibleCgpa" type="number" min="0" max="10" step="0.01" placeholder="6.5" required>
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="jobType">Job Type</label>
+                                <select id="jobType" name="jobType" required>
+                                    <option value="">Select job type</option>
+                                    <option>Internship</option>
+                                    <option>Full Time</option>
+                                    <option>Internship + Full Time</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="ctcPackage">CTC Package</label>
+                                <input id="ctcPackage" name="ctcPackage" type="text" placeholder="6 LPA" required>
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="stipend">Stipend</label>
+                                <input id="stipend" name="stipend" type="text" placeholder="15000/month">
+                            </div>
+                            <div>
+                                <label for="bondDetails">Bond Details</label>
+                                <input id="bondDetails" name="bondDetails" type="text" placeholder="2 years service agreement">
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="backlogsAllowed">Backlogs Allowed</label>
+                                <select id="backlogsAllowed" name="backlogsAllowed">
+                                    <option value="false">No</option>
+                                    <option value="true">Yes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="maxBacklogs">Maximum Backlogs</label>
+                                <input id="maxBacklogs" name="maxBacklogs" type="number" min="0" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid">
+                            <div>
+                                <label for="numberOfRounds">Number of Rounds</label>
+                                <input id="numberOfRounds" name="numberOfRounds" type="number" min="0" placeholder="4">
+                            </div>
+                            <div>
+                                <label for="roundNames">Round Names</label>
+                                <input id="roundNames" name="roundNames" type="text" placeholder="Aptitude, Coding, Technical, HR">
+                            </div>
+                        </div>
+
+                        <div class="drive-form-grid three-grid">
+                            <div>
+                                <label for="registrationDeadline">Registration Deadline</label>
+                                <input id="registrationDeadline" name="registrationDeadline" type="date">
+                            </div>
+                            <div>
+                                <label for="examDate">Exam Date</label>
+                                <input id="examDate" name="examDate" type="date">
+                            </div>
+                            <div>
+                                <label for="interviewDate">Interview Date</label>
+                                <input id="interviewDate" name="interviewDate" type="date">
+                            </div>
+                        </div>
+
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="5" placeholder="Additional drive details, instructions, or preparation notes"></textarea>
+
+                        <p id="driveSuccess" class="success-message hidden" aria-live="polite"></p>
+                        <p id="driveError" class="error-message" aria-live="polite"></p>
+
+                        <div class="drive-form-actions">
+                            <button id="submitDriveButton" type="submit" class="primary-btn">Add Drive</button>
+                            <button id="cancelDriveEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="admin-drive-form-card">
+                    <div class="drive-section-head">
+                        <span class="card-tag">Excel Upload</span>
+                        <h2>Upload placement drives Excel</h2>
+                        <p>Import `.xlsx` or `.xls` files using existing company names from the company master data.</p>
                     </div>
 
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="hiringLocation">Hiring Location</label>
-                            <input id="hiringLocation" name="hiringLocation" type="text" placeholder="Hyderabad">
+                    <form id="placementDriveUploadForm" class="drive-form" novalidate>
+                        <label for="placementDriveExcelFile">Placement Drives Excel File</label>
+                        <input id="placementDriveExcelFile" name="file" type="file" accept=".xlsx,.xls" required>
+                        <p id="placementDriveUploadFileName" class="upload-file-name">No file selected</p>
+                        <p id="placementDriveUploadSuccess" class="success-message hidden" aria-live="polite"></p>
+                        <p id="placementDriveUploadError" class="error-message" aria-live="polite"></p>
+
+                        <div class="drive-form-actions">
+                            <button id="placementDriveUploadButton" type="submit" class="primary-btn">Upload Drives</button>
+                            <button id="placementDriveTemplateButton" type="button" class="secondary-btn">Download Template</button>
+                        </div>
+                    </form>
+
+                    <div id="placementDriveUploadSummary" class="upload-summary hidden">
+                        <h3>Upload Summary</h3>
+                        <div class="summary-grid">
+                            <div><span>Total Rows</span><strong id="placementDriveSummaryTotalRows">0</strong></div>
+                            <div><span>Saved</span><strong id="placementDriveSummarySuccess">0</strong></div>
+                            <div><span>Failed</span><strong id="placementDriveSummaryFailed">0</strong></div>
                         </div>
                         <div>
-                            <label for="driveStatus">Drive Status</label>
-                            <select id="driveStatus" name="driveStatus" required>
-                                <option value="">Select status</option>
-                                <option>Upcoming</option>
-                                <option>Ongoing</option>
-                                <option>Completed</option>
-                                <option>Closed</option>
-                            </select>
+                            <h4>Row Errors</h4>
+                            <ul id="placementDriveUploadErrors" class="error-list"></ul>
                         </div>
                     </div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="eligibleBranches">Eligible Branches</label>
-                            <input id="eligibleBranches" name="eligibleBranches" type="text" placeholder="CSE, IT, ECE, EEE" required>
-                        </div>
-                        <div>
-                            <label for="eligibleCgpa">Eligible CGPA</label>
-                            <input id="eligibleCgpa" name="eligibleCgpa" type="number" min="0" max="10" step="0.01" placeholder="6.5" required>
-                        </div>
-                    </div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="jobType">Job Type</label>
-                            <select id="jobType" name="jobType" required>
-                                <option value="">Select job type</option>
-                                <option>Internship</option>
-                                <option>Full Time</option>
-                                <option>Internship + Full Time</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="ctcPackage">CTC Package</label>
-                            <input id="ctcPackage" name="ctcPackage" type="text" placeholder="6 LPA" required>
-                        </div>
-                    </div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="stipend">Stipend</label>
-                            <input id="stipend" name="stipend" type="text" placeholder="15000/month">
-                        </div>
-                        <div>
-                            <label for="bondDetails">Bond Details</label>
-                            <input id="bondDetails" name="bondDetails" type="text" placeholder="2 years service agreement">
-                        </div>
-                    </div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="backlogsAllowed">Backlogs Allowed</label>
-                            <select id="backlogsAllowed" name="backlogsAllowed">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="maxBacklogs">Maximum Backlogs</label>
-                            <input id="maxBacklogs" name="maxBacklogs" type="number" min="0" placeholder="0">
-                        </div>
-                    </div>
-
-                    <div class="drive-form-grid">
-                        <div>
-                            <label for="numberOfRounds">Number of Rounds</label>
-                            <input id="numberOfRounds" name="numberOfRounds" type="number" min="0" placeholder="4">
-                        </div>
-                        <div>
-                            <label for="roundNames">Round Names</label>
-                            <input id="roundNames" name="roundNames" type="text" placeholder="Aptitude, Coding, Technical, HR">
-                        </div>
-                    </div>
-
-                    <div class="drive-form-grid three-grid">
-                        <div>
-                            <label for="registrationDeadline">Registration Deadline</label>
-                            <input id="registrationDeadline" name="registrationDeadline" type="date">
-                        </div>
-                        <div>
-                            <label for="examDate">Exam Date</label>
-                            <input id="examDate" name="examDate" type="date">
-                        </div>
-                        <div>
-                            <label for="interviewDate">Interview Date</label>
-                            <input id="interviewDate" name="interviewDate" type="date">
-                        </div>
-                    </div>
-
-                    <label for="description">Description</label>
-                    <textarea id="description" name="description" rows="5" placeholder="Additional drive details, instructions, or preparation notes"></textarea>
-
-                    <p id="driveSuccess" class="success-message hidden" aria-live="polite"></p>
-                    <p id="driveError" class="error-message" aria-live="polite"></p>
-
-                    <div class="drive-form-actions">
-                        <button id="submitDriveButton" type="submit" class="primary-btn">Add Drive</button>
-                        <button id="cancelDriveEditButton" type="button" class="secondary-btn hidden">Cancel Edit</button>
-                    </div>
-                </form>
-            </article>
+                </article>
+            </div>
 
             <article class="admin-drive-list-card">
                 <div class="drive-section-head">
