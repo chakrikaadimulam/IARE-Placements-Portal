@@ -77,7 +77,7 @@
         if (drive.companyLogoUrl) {
             return [
                 '<div class="company-logo">',
-                '<img src="', escapeHtml(drive.companyLogoUrl), '" alt="', escapeHtml(companyName), ' logo">',
+                '<img src="', escapeHtml(drive.companyLogoUrl), '" alt="', escapeHtml(companyName), ' logo" loading="lazy" decoding="async" width="60" height="60">',
                 '</div>'
             ].join("");
         }
@@ -404,6 +404,7 @@
             setupFilters();
             renderDrives(allDrives);
         } catch (error) {
+            console.error("Failed to load placement drives:", error);
             if (error && error.code === 'server_wake') {
                 const loading = document.getElementById('studentDrivesLoading');
                 if (loading) loading.classList.remove('hidden');
@@ -414,6 +415,7 @@
                         populateJobTypeFilter(allDrives);
                         renderDrives(allDrives);
                     } catch (err) {
+                        console.error("Failed to reload placement drives after wake:", err);
                         showError("Unable to load placement drives. Please refresh.");
                     }
                 }, 2000);

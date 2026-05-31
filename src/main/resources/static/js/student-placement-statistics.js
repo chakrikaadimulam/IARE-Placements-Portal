@@ -64,7 +64,7 @@
         if (record.companyLogoUrl) {
             return `
                 <div class="company-logo">
-                    <img src="${escapeHtml(record.companyLogoUrl)}" alt="${escapeHtml(companyName)} logo">
+                    <img src="${escapeHtml(record.companyLogoUrl)}" alt="${escapeHtml(companyName)} logo" loading="lazy" decoding="async" width="60" height="60">
                 </div>
             `;
         }
@@ -445,6 +445,7 @@
             populateYearFilter(allStatistics);
             renderStatistics(allStatistics);
         } catch (error) {
+            console.error("Failed to load placement statistics:", error);
             if (error && error.code === 'server_wake') {
                 const loading = document.getElementById('studentStatisticsLoading');
                 if (loading) loading.classList.remove('hidden');
@@ -454,6 +455,7 @@
                         populateYearFilter(allStatistics);
                         renderStatistics(allStatistics);
                     } catch (err) {
+                        console.error("Failed to reload placement statistics after wake:", err);
                         showError('Unable to load placement statistics. Please refresh.');
                     }
                 }, 2000);

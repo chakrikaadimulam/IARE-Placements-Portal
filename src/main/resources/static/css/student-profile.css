@@ -108,6 +108,12 @@ body.student-profile-page {
     margin-bottom: 1rem;
 }
 
+.page-state-error {
+    color: #8b2e2e;
+    border-color: #f0d2d2;
+    background: #fff7f7;
+}
+
 .hidden {
     display: none !important;
 }
@@ -116,6 +122,27 @@ body.student-profile-page {
     display: grid;
     gap: 1.5rem;
     background: transparent;
+}
+
+.profile-layout-enter {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.profile-layout-enter.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.profile-skeleton {
+    opacity: 1;
+    transition: opacity 0.24s ease;
+}
+
+.profile-skeleton.is-fading-out {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .profile-header {
@@ -341,6 +368,122 @@ body.student-profile-page {
     word-break: break-word;
 }
 
+/* ==========================================
+   Premium Skeleton Loading
+========================================== */
+
+.skeleton {
+    background-color: #e5e5e5;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.4) 25%,
+        rgba(255, 255, 255, 0.95) 50%,
+        rgba(255, 255, 255, 0.4) 75%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-20deg);
+    animation: ultraShine 2.5s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+@keyframes ultraShine {
+    0% { left: -150%; }
+    100% { left: 150%; }
+}
+
+.skel-pfp {
+    background: linear-gradient(110deg, #e5e5e5 8%, #ffffff 18%, #e5e5e5 33%);
+    background-size: 200% 100%;
+    animation: pfpShadeChange 2s linear infinite;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+@keyframes pfpShadeChange {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skel-stagger {
+    opacity: 0;
+    transform: translateY(40px);
+    animation: slowGlideIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slowGlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.skel-stagger:nth-child(1) { animation-delay: 0.2s; }
+.skel-stagger:nth-child(2) { animation-delay: 0.6s; }
+.skel-stagger:nth-child(3) { animation-delay: 1s; }
+.skel-stagger:nth-child(4) { animation-delay: 1.4s; }
+.skel-stagger:nth-child(5) { animation-delay: 1.8s; }
+.skel-stagger:nth-child(6) { animation-delay: 2.2s; }
+.skel-stagger:nth-child(7) { animation-delay: 2.6s; }
+.skel-stagger:nth-child(8) { animation-delay: 3s; }
+
+.skel-line-long { width: 85%; height: 16px; margin-bottom: 8px; }
+.skel-line-med { width: 60%; height: 16px; margin-bottom: 8px; }
+.skel-line-short { width: 40%; height: 16px; margin-bottom: 8px; }
+.skel-title { width: 220px; height: 28px; margin-bottom: 12px; }
+
+.profile-skeleton-subtitle {
+    height: 14px;
+}
+
+.profile-tags-skeleton {
+    gap: 0.75rem;
+}
+
+.profile-tag-skeleton {
+    width: 118px;
+    height: 36px;
+    padding: 0;
+    border: none;
+}
+
+.section-icon-skeleton {
+    background-color: #e5e5e5;
+}
+
+.section-title-skeleton {
+    width: 220px;
+    height: 24px;
+}
+
+.skeleton-card {
+    pointer-events: none;
+}
+
+.detail-card-skeleton {
+    border-color: #ececec;
+    box-shadow: none;
+}
+
+.detail-card-skeleton:hover,
+.profile-skeleton .profile-header:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: none;
+}
+
 @media (min-width: 768px) {
     .profile-header-content {
         flex-direction: row;
@@ -392,4 +535,15 @@ body.student-profile-page {
     .profile-header {
         padding: 1.5rem;
     }
+    
+    .skel-title,
+    .section-title-skeleton {
+        width: 70%;
+    }
+
+    .profile-tag-skeleton {
+        width: 96px;
+    }
 }
+
+

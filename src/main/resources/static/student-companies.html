@@ -47,19 +47,19 @@
                 <span id="companyCount">0</span> profiles found
             </div>
             <div class="pagination-controls">
+                <span id="companiesInlineLoading" class="inline-loading-indicator hidden" aria-hidden="true">
+                    <span class="inline-loading-dot"></span>
+                    <span class="inline-loading-dot"></span>
+                    <span class="inline-loading-dot"></span>
+                </span>
                 <button id="companiesPrevButton" class="pagination-btn" type="button">Previous</button>
                 <span id="companiesPageInfo" class="pagination-info">Page 0 of 0</span>
                 <button id="companiesNextButton" class="pagination-btn" type="button">Next</button>
             </div>
         </div>
-        <p id="companiesPageLoadingHint" class="page-loading-hint hidden" aria-live="polite">Loading next page...</p>
 
         <section>
-            <div id="studentCompaniesLoading" class="cards-grid loading-skeleton-grid">
-                <article class="company-card company-card-skeleton"></article>
-                <article class="company-card company-card-skeleton"></article>
-                <article class="company-card company-card-skeleton"></article>
-            </div>
+            <div id="studentCompaniesLoading" class="cards-grid loading-skeleton-grid" aria-hidden="true"></div>
 
             <div class="cards-grid" id="companiesGrid"></div>
 

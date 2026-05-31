@@ -92,24 +92,26 @@ public class CompanyService {
     }
 
     @Transactional(readOnly = true)
-    public CompanyPageResponse getCompaniesPaginated(int page, int size) {
+    public CompanyPageResponse getCompaniesPaginated(int page, int size, String search) {
         Pageable pageable = buildPageable(page, size);
+        String normalizedSearch = normalizeSearch(search);
         long startTime = System.currentTimeMillis();
-        Page<CompanyListDto> companyPage = companyRepository.findCompanyListPage(false, pageable);
+        Page<CompanyListDto> companyPage = companyRepository.findCompanyListPage(false, normalizedSearch, pageable);
         long elapsedTime = System.currentTimeMillis() - startTime;
-        LOGGER.info("Student company page fetched in {} ms: page={}, size={}, totalElements={}",
-                elapsedTime, pageable.getPageNumber(), pageable.getPageSize(), companyPage.getTotalElements());
+        LOGGER.info("Student company page fetched in {} ms: page={}, size={}, search='{}', totalElements={}",
+                elapsedTime, pageable.getPageNumber(), pageable.getPageSize(), normalizedSearch, companyPage.getTotalElements());
         return toPageResponse(companyPage, pageable);
     }
 
     @Transactional(readOnly = true)
-    public CompanyPageResponse getAdminCompaniesPaginated(int page, int size) {
+    public CompanyPageResponse getAdminCompaniesPaginated(int page, int size, String search) {
         Pageable pageable = buildPageable(page, size);
+        String normalizedSearch = normalizeSearch(search);
         long startTime = System.currentTimeMillis();
-        Page<CompanyListDto> companyPage = companyRepository.findCompanyListPage(true, pageable);
+        Page<CompanyListDto> companyPage = companyRepository.findCompanyListPage(true, normalizedSearch, pageable);
         long elapsedTime = System.currentTimeMillis() - startTime;
-        LOGGER.info("Admin company page fetched in {} ms: page={}, size={}, totalElements={}",
-                elapsedTime, pageable.getPageNumber(), pageable.getPageSize(), companyPage.getTotalElements());
+        LOGGER.info("Admin company page fetched in {} ms: page={}, size={}, search='{}', totalElements={}",
+                elapsedTime, pageable.getPageNumber(), pageable.getPageSize(), normalizedSearch, companyPage.getTotalElements());
         return toPageResponse(companyPage, pageable);
     }
 
@@ -301,6 +303,13 @@ public class CompanyService {
         int safePage = Math.max(page, DEFAULT_PAGE);
         int safeSize = size <= 0 ? DEFAULT_SIZE : Math.min(size, MAX_PAGE_SIZE);
         return PageRequest.of(safePage, safeSize);
+    }
+
+    private String normalizeSearch(String search) {
+        if (search == null) {
+            return "";
+        }
+        return search.trim();
     }
 
     private void validateExcelFile(MultipartFile file) {

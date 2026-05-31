@@ -1,13 +1,45 @@
 (function () {
     const COMPANIES_API = "/api/companies";
     const PAGE_SIZE = 20;
+    const SEARCH_DEBOUNCE_MS = 300;
+    const SKELETON_CARD_COUNT = 6;
     const companiesPageCache = new Map();
     let currentPage = 0;
     let totalPages = 0;
     let totalElements = 0;
     let currentPageCompanies = [];
+    let currentSearch = "";
     let isCompaniesLoading = false;
     let activeCompaniesRequest = null;
+    let searchDebounceTimer = null;
+
+    function showElement(element) {
+        if (element) {
+            element.classList.remove("hidden");
+        }
+    }
+
+    function hideElement(element) {
+        if (element) {
+            element.classList.add("hidden");
+        }
+    }
+
+    function createCompanySkeletonMarkup(count) {
+        return Array.from({ length: count }).map(function () {
+            return '<article class="company-card company-card-skeleton"></article>';
+        }).join("");
+    }
+
+    function ensureSkeletonGrid() {
+        const loadingElement = document.getElementById("studentCompaniesLoading");
+        if (!loadingElement || loadingElement.dataset.initialized === "true") {
+            return;
+        }
+
+        loadingElement.innerHTML = createCompanySkeletonMarkup(SKELETON_CARD_COUNT);
+        loadingElement.dataset.initialized = "true";
+    }
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -29,7 +61,14 @@
 
     async function fetchCompanies(page, signal) {
         const safePage = Math.max(0, Number(page) || 0);
-        const url = COMPANIES_API + "?page=" + safePage + "&size=" + PAGE_SIZE;
+        const params = new URLSearchParams({
+            page: String(safePage),
+            size: String(PAGE_SIZE)
+        });
+        if (currentSearch) {
+            params.set("search", currentSearch);
+        }
+        const url = COMPANIES_API + "?" + params.toString();
         const response = await fetch(url, {
             method: "GET",
             signal,
@@ -96,20 +135,15 @@
         return buildFallbackLogo(companyName);
     }
 
-    function buildSearchText(company) {
-        return [
-            safeText(company.companyName, ""),
-            safeText(company.companyType, ""),
-            safeText(company.industry, ""),
-            safeText(company.headquarters, "")
-        ].join(" ").toLowerCase();
-    }
-
     function updateCompanyCount(count) {
         const companyCount = document.getElementById("companyCount");
         if (companyCount) {
             companyCount.textContent = String(count);
         }
+    }
+
+    function hasActiveSearch() {
+        return currentSearch.length > 0;
     }
 
     function updatePaginationControls() {
@@ -131,12 +165,27 @@
     function setListLoading(isLoading, initialLoad) {
         const loadingElement = document.getElementById("studentCompaniesLoading");
         const list = document.getElementById("companiesGrid");
-        const loadingHint = document.getElementById("companiesPageLoadingHint");
+        const loadingHint = document.getElementById("companiesInlineLoading");
+        const emptyState = document.getElementById("studentCompaniesEmpty");
+
+        ensureSkeletonGrid();
+
         if (loadingElement) {
-            loadingElement.classList.toggle("hidden", !(isLoading && initialLoad));
+            if (isLoading && initialLoad) {
+                showElement(loadingElement);
+            } else {
+                hideElement(loadingElement);
+            }
         }
         if (list) {
-            list.classList.toggle("hidden", isLoading && initialLoad);
+            if (isLoading && initialLoad) {
+                hideElement(list);
+            } else {
+                showElement(list);
+            }
+        }
+        if (emptyState && isLoading) {
+            hideElement(emptyState);
         }
         if (loadingHint) {
             loadingHint.classList.toggle("hidden", !(isLoading && !initialLoad));
@@ -148,15 +197,13 @@
         const list = document.getElementById("companiesGrid");
         const emptyState = document.getElementById("studentCompaniesEmpty");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
-        }
+        hideElement(loadingElement);
         if (!list || !emptyState) {
             return;
         }
 
         let markup = "";
-        updateCompanyCount(companies.length);
+        updateCompanyCount(totalElements);
         updatePaginationControls();
 
         if (!companies.length) {
@@ -164,8 +211,10 @@
             emptyState.classList.remove("hidden");
             emptyState.innerHTML = [
                 '<i data-lucide="building-2"></i>',
-                '<h3>No companies available yet.</h3>',
-                '<p>Try again later or check another page.</p>'
+                hasActiveSearch() ? '<h3>No matching companies found.</h3>' : '<h3>No companies available yet.</h3>',
+                hasActiveSearch()
+                    ? '<p>Try a different company name or keyword.</p>'
+                    : '<p>Try again later or check another page.</p>'
             ].join("");
             initLucideIcons();
             return;
@@ -212,19 +261,16 @@
     }
 
     function filterCompanies() {
-        const searchInput = document.getElementById("searchInput");
         const typeFilter = document.getElementById("typeFilter");
         const industryFilter = document.getElementById("industryFilter");
-        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
         const typeValue = typeFilter ? typeFilter.value : "";
         const industryValue = industryFilter ? industryFilter.value : "";
 
         const filteredCompanies = currentPageCompanies.filter(function (company) {
-            const matchesSearch = !searchTerm || buildSearchText(company).includes(searchTerm);
             const matchesType = !typeValue || safeText(company.companyType, "N/A") === typeValue;
             const matchesIndustry = !industryValue || safeText(company.industry, "N/A") === industryValue;
 
-            return matchesSearch && matchesType && matchesIndustry;
+            return matchesType && matchesIndustry;
         });
 
         renderCompanies(filteredCompanies);
@@ -234,18 +280,18 @@
         const loadingElement = document.getElementById("studentCompaniesLoading");
         const emptyState = document.getElementById("studentCompaniesEmpty");
         const list = document.getElementById("companiesGrid");
+        const loadingHint = document.getElementById("companiesInlineLoading");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
-        }
+        hideElement(loadingElement);
+        hideElement(loadingHint);
         if (list) {
             list.classList.add("hidden");
         }
         if (emptyState) {
             emptyState.innerHTML = [
                 '<i data-lucide="building-2"></i>',
-                '<h3>No companies found</h3>',
-                '<p>', escapeHtml(message || "Unable to load companies. Please try again."), '</p>'
+                '<h3>Unable to load companies.</h3>',
+                '<p>', escapeHtml(message || "Please try again."), '</p>'
             ].join("");
             emptyState.classList.remove("hidden");
         }
@@ -259,7 +305,18 @@
         const typeFilter = document.getElementById("typeFilter");
         const industryFilter = document.getElementById("industryFilter");
 
-        if (searchInput) searchInput.addEventListener("input", filterCompanies);
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const nextSearch = searchInput.value.trim();
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+                searchDebounceTimer = setTimeout(function () {
+                    currentSearch = nextSearch;
+                    loadCompanies(0, { initialLoad: false, force: true });
+                }, SEARCH_DEBOUNCE_MS);
+            });
+        }
         if (typeFilter) typeFilter.addEventListener("change", filterCompanies);
         if (industryFilter) industryFilter.addEventListener("change", filterCompanies);
     }
@@ -355,12 +412,16 @@
         }
     }
 
+    function buildCacheKey(page) {
+        return [Number(page) || 0, PAGE_SIZE, currentSearch].join("|");
+    }
+
     function storePageInCache(page, payload) {
-        companiesPageCache.set(Number(page) || 0, payload);
+        companiesPageCache.set(buildCacheKey(page), payload);
     }
 
     function getCachedPage(page) {
-        return companiesPageCache.get(Number(page) || 0) || null;
+        return companiesPageCache.get(buildCacheKey(page)) || null;
     }
 
     async function prefetchCompaniesPage(page) {
@@ -400,6 +461,7 @@
 
         const cachedPage = getCachedPage(safePage);
         if (cachedPage) {
+            setListLoading(false, initialLoad);
             applyPagePayload(cachedPage);
             console.time("companies-page-load");
             console.timeEnd("companies-page-load");
@@ -472,6 +534,8 @@
         setupFilters();
         setupPagination();
         updatePaginationControls();
+        ensureSkeletonGrid();
+        setListLoading(true, true);
 
         await loadCompanies(0, { initialLoad: true });
     });

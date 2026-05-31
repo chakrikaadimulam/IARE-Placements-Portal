@@ -72,9 +72,10 @@ public class CompanyController {
     @GetMapping("/api/admin/companies/paged")
     public ResponseEntity<?> getAdminCompaniesPaginated(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search) {
         try {
-            CompanyPageResponse response = companyService.getAdminCompaniesPaginated(page, size);
+            CompanyPageResponse response = companyService.getAdminCompaniesPaginated(page, size, search);
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.noCache())
                     .body(response);
@@ -112,9 +113,10 @@ public class CompanyController {
     @GetMapping("/api/companies")
     public ResponseEntity<?> getCompaniesPaginated(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search) {
         try {
-            CompanyPageResponse response = companyService.getCompaniesPaginated(page, size);
+            CompanyPageResponse response = companyService.getCompaniesPaginated(page, size, search);
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
                     .body(response);
