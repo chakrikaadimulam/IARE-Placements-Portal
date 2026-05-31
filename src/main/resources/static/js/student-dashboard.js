@@ -20,23 +20,8 @@
     }
 
     async function fetchJson(url) {
-        const response = await fetch(url);
-        const text = await response.text();
-
-        let data = null;
-        if (text) {
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                data = null;
-            }
-        }
-
-        if (!response.ok) {
-            throw new Error(data?.message || text || "Request failed");
-        }
-
-        return data;
+        // Prefer apiClient which provides timeouts and better error handling
+        return await window.apiClient.get(url);
     }
 
     function formatDate(dateString) {
@@ -191,8 +176,7 @@
         applyStudentIdentity(fallbackStudent);
 
         try {
-            const profile = await fetchJson(getProfileUrl(authState));
-
+            const profile = await window.apiClient.get(getProfileUrl(authState));
             applyStudentIdentity({
                 studentName: profile.studentName || profile.name || fallbackStudent.studentName,
                 rollNo: profile.rollNo || fallbackStudent.rollNo,
@@ -202,20 +186,19 @@
                 photoUrl: profile.photoUrl || profile.photo || fallbackStudent.photoUrl
             });
         } catch (error) {
-            console.warn("Student profile loading failed:", error.message);
+            console.warn("Student profile loading failed:", (error && error.message) || error);
             applyStudentIdentity(fallbackStudent);
         }
     }
 
     async function hydrateNoticePreview() {
         const empty = document.getElementById("studentDashboardNoticeEmpty");
-
         try {
-            const notices = await fetchJson(ACTIVE_NOTICES_API);
-            renderNoticePreview(notices);
+            const result = await window.apiClient.cachedGet('active_notices_v1', ACTIVE_NOTICES_API, 120000);
+            renderNoticePreview(result.data || []);
         } catch (error) {
             if (empty) {
-                empty.textContent = error.message || "Unable to load notices right now.";
+                empty.textContent = (error && error.message) || "Unable to load notices right now.";
                 empty.classList.remove("hidden");
             }
         }

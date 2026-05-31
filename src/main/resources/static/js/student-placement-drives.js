@@ -12,16 +12,8 @@
     }
 
     async function fetchDrives() {
-        const response = await fetch(DRIVES_API);
-        const payload = await response.json().catch(function () {
-            return [];
-        });
-
-        if (!response.ok) {
-            throw new Error(payload && payload.message ? payload.message : "Unable to load placement drives.");
-        }
-
-        return Array.isArray(payload) ? payload : [];
+        const result = await window.apiClient.cachedGet('placement_drives_v1', DRIVES_API, 120000);
+        return Array.isArray(result.data) ? result.data : [];
     }
 
     function safeText(value, fallback) {
@@ -412,7 +404,23 @@
             setupFilters();
             renderDrives(allDrives);
         } catch (error) {
-            showError(error.message || "Unable to load placement drives right now.");
+            if (error && error.code === 'server_wake') {
+                const loading = document.getElementById('studentDrivesLoading');
+                if (loading) loading.classList.remove('hidden');
+                setTimeout(async function () {
+                    try {
+                        allDrives = await fetchDrives();
+                        populateYearFilter(allDrives);
+                        populateJobTypeFilter(allDrives);
+                        renderDrives(allDrives);
+                    } catch (err) {
+                        showError("Unable to load placement drives. Please refresh.");
+                    }
+                }, 2000);
+                return;
+            }
+
+            showError("Unable to load placement drives. Please refresh.");
         }
     });
 })();

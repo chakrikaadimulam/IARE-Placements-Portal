@@ -4,6 +4,40 @@
     let allStudents = [];
 
     async function fetchJson(url, options) {
+        // Use apiClient where possible (adds timeouts/retries). Fallback to fetch when apiClient not present.
+        options = options || {};
+        const method = (options.method || 'GET').toUpperCase();
+        if (window.apiClient) {
+            if (method === 'GET') {
+                return await window.apiClient.get(url);
+            }
+
+            if (method === 'POST') {
+                // POST body may be FormData
+                if (options.body instanceof FormData) {
+                    const res = await fetch(url, options); // FormData via native fetch
+                    if (!res.ok) {
+                        const text = await res.text();
+                        let payload = null;
+                        try { payload = JSON.parse(text); } catch (e) { payload = null; }
+                        throw new Error((payload && (payload.message || payload.error)) || text || 'Request failed.');
+                    }
+                    return await res.json().catch(function () { return null; });
+                }
+
+                return await window.apiClient.post(url, options.body || {});
+            }
+
+            if (method === 'PUT') {
+                return await window.apiClient.put(url, options.body || {});
+            }
+
+            if (method === 'DELETE') {
+                return await window.apiClient.delete(url);
+            }
+        }
+
+        // Fallback legacy fetch path
         const response = await fetch(url, options);
 
         if (response.status === 204) {
@@ -22,7 +56,7 @@
         }
 
         if (!response.ok) {
-            throw new Error(payload && payload.message ? payload.message : (rawText || "Request failed."));
+            throw new Error(payload && payload.message ? payload.message : (rawText || 'Request failed.'));
         }
 
         return payload;
@@ -365,7 +399,13 @@
                     });
                     await loadStudents();
                 } catch (error) {
-                    window.alert(error.message || "Unable to update student status.");
+                    const el = document.getElementById('studentListEmpty');
+                    if (el) {
+                        el.textContent = error.message || "Unable to update student status.";
+                        el.classList.remove('hidden');
+                    } else {
+                        console.error(error);
+                    }
                 }
                 return;
             }
@@ -378,7 +418,13 @@
                 await fetchJson(STUDENTS_API + "/" + studentId, { method: "DELETE" });
                 await loadStudents();
             } catch (error) {
-                window.alert(error.message || "Unable to delete student.");
+                const el = document.getElementById('studentListEmpty');
+                if (el) {
+                    el.textContent = error.message || "Unable to delete student.";
+                    el.classList.remove('hidden');
+                } else {
+                    console.error(error);
+                }
             }
         });
 

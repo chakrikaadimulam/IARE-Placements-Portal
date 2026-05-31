@@ -10,16 +10,8 @@
     let filteredResources = [];
 
     async function fetchResources() {
-        const response = await fetch(RESOURCES_API);
-        const payload = await response.json().catch(function () {
-            return [];
-        });
-
-        if (!response.ok) {
-            throw new Error(payload && payload.message ? payload.message : "Unable to load preparation resources.");
-        }
-
-        return Array.isArray(payload) ? payload : [];
+        const result = await window.apiClient.cachedGet('preparation_resources_v1', RESOURCES_API, 120000);
+        return Array.isArray(result.data) ? result.data : [];
     }
 
     function escapeHtml(value) {
@@ -432,7 +424,23 @@
             setupFilters();
             renderResources(allResources);
         } catch (error) {
-            showError(error.message || "Unable to load preparation resources right now.");
+            if (error && error.code === 'server_wake') {
+                const loading = document.getElementById('studentResourceLoading');
+                if (loading) loading.classList.remove('hidden');
+                setTimeout(async function () {
+                    try {
+                        allResources = await fetchResources();
+                        filteredResources = allResources.slice();
+                        populateFilters(allResources);
+                        renderResources(allResources);
+                    } catch (err) {
+                        showError('Unable to load resources. Please refresh.');
+                    }
+                }, 2000);
+                return;
+            }
+
+            showError('Unable to load resources. Please refresh.');
         }
     });
 })();

@@ -11,23 +11,8 @@
     }
 
     async function fetchActiveNotices() {
-        const response = await fetch(ACTIVE_NOTICES_API);
-        const text = await response.text();
-
-        let payload = [];
-        if (text) {
-            try {
-                payload = JSON.parse(text);
-            } catch (error) {
-                payload = [];
-            }
-        }
-
-        if (!response.ok) {
-            throw new Error(payload && payload.message ? payload.message : "Unable to load notices.");
-        }
-
-        return Array.isArray(payload) ? payload : [];
+        const result = await window.apiClient.cachedGet('active_notices_v1', ACTIVE_NOTICES_API, 120000);
+        return Array.isArray(result.data) ? result.data : [];
     }
 
     function formatDate(dateString) {
@@ -276,7 +261,23 @@
             initLucideIcons();
             initNoticeCards();
         } catch (error) {
-            showStudentError(error.message || "Unable to load notices right now.");
+            if (error && error.code === 'server_wake') {
+                const previewEmpty = document.getElementById('studentDashboardNoticeEmpty');
+                if (previewEmpty) previewEmpty.classList.remove('hidden');
+                setTimeout(async function () {
+                    try {
+                        const notices = await fetchActiveNotices();
+                        renderStudentNoticesPage(notices);
+                        renderDashboardPreview(notices);
+                        initNoticeCards();
+                    } catch (err) {
+                        showStudentError('Unable to load notices. Please refresh.');
+                    }
+                }, 2000);
+                return;
+            }
+
+            showStudentError('Unable to load notices. Please refresh.');
         }
     });
 })();
