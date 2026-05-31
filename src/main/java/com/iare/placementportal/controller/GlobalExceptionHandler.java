@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,17 @@ public class GlobalExceptionHandler {
                 .body(new ApiErrorResponse(message, null, LocalDateTime.now()));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidRequestBody(HttpMessageNotReadableException exception) {
+        LOGGER.warn("Invalid request body received: {}", exception.getMessage());
+
+        Throwable rootCause = exception.getMostSpecificCause();
+        String error = rootCause != null ? rootCause.getMessage() : exception.getMessage();
+
+        return ResponseEntity.badRequest()
+                .body(new ApiErrorResponse("Invalid request body", error, LocalDateTime.now()));
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatusException(ResponseStatusException exception) {
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
@@ -42,6 +54,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleGenericException(Exception exception) {
         LOGGER.error("Unhandled server exception occurred.", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiErrorResponse("Excel upload failed", exception.getMessage(), LocalDateTime.now()));
+                .body(new ApiErrorResponse("An unexpected error occurred", exception.getMessage(), LocalDateTime.now()));
     }
 }

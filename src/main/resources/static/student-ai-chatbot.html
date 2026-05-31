@@ -29,7 +29,7 @@
             <p>Ask focused placement questions, rehearse company-specific preparation, and get structured guidance before you apply.</p>
         </div>
         <div class="welcome-badge">
-            <span>Static Demo UI</span>
+            <span>AI Ready</span>
         </div>
     </section>
 
@@ -39,7 +39,14 @@
                 <p class="chat-title">Conversation</p>
                 <p class="chat-subtitle">Professional placement-focused guidance</p>
             </div>
-            <div class="status-pill">Online</div>
+            <div class="status-pill" id="chatStatus">Ready</div>
+        </div>
+
+        <div class="suggestion-row" id="suggestionRow">
+            <button type="button" class="suggestion-chip">How should I prepare for placements?</button>
+            <button type="button" class="suggestion-chip">Explain resume tips</button>
+            <button type="button" class="suggestion-chip">How to prepare for HR interview?</button>
+            <button type="button" class="suggestion-chip">What skills are needed for Java developer?</button>
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -49,23 +56,12 @@
                     <p>Hello! I can help you prepare for placement drives, improve your resume, and structure interview answers.</p>
                 </div>
             </article>
-            <article class="message-row user">
-                <div class="message-bubble">
-                    <p>What should I focus on before an upcoming software developer drive?</p>
-                </div>
-                <div class="message-avatar user-avatar">You</div>
-            </article>
-            <article class="message-row bot">
-                <div class="message-avatar">AI</div>
-                <div class="message-bubble">
-                    <p>Start with aptitude basics, DSA revision, your top 2 projects, and a concise self-introduction. Also review the company’s hiring pattern and role requirements.</p>
-                </div>
-            </article>
         </div>
 
         <form class="chat-input-bar" id="chatForm">
-            <input id="chatInput" type="text" placeholder="Ask about drives, resume improvement, or interview preparation...">
-            <button type="submit" class="send-btn">Send</button>
+            <label class="sr-only" for="chatInput">Chat message</label>
+            <textarea id="chatInput" rows="1" placeholder="Ask about drives, resume improvement, or interview preparation..."></textarea>
+            <button type="submit" class="send-btn" id="sendBtn">Send</button>
         </form>
     </section>
 </main>
