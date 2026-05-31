@@ -50,7 +50,7 @@
 
     function getCompanyLogoMarkup(student) {
         if (student.companyLogoUrl) {
-            return '<div class="company-logo"><img src="' + escapeHtml(student.companyLogoUrl) + '" alt="' + escapeHtml(safeText(student.companyName, "Company")) + '"></div>';
+            return '<div class="company-logo"><img src="' + escapeHtml(student.companyLogoUrl) + '" alt="' + escapeHtml(safeText(student.companyName, "Company")) + '" loading="lazy" decoding="async" width="56" height="56"></div>';
         }
 
         return [
@@ -192,7 +192,7 @@
 
                 '<div class="student-row">',
                 '<div class="student-avatar">',
-                '<img src="', escapeHtml(photoUrl), '" alt="', escapeHtml(studentName), '" onerror="this.src=\'', escapeHtml(getAvatarFallbackUrl(student)), '\'">',
+                '<img src="', escapeHtml(photoUrl), '" alt="', escapeHtml(studentName), '" loading="lazy" decoding="async" width="64" height="64" onerror="this.src=\'', escapeHtml(getAvatarFallbackUrl(student)), '\'">',
                 "</div>",
                 '<div class="student-details">',
                 '<h4 class="student-name">', escapeHtml(studentName), "</h4>",
@@ -400,6 +400,7 @@
             setupFilters();
             applyFilters();
         } catch (error) {
+            console.error("Failed to load selected students:", error);
             if (error && error.code === 'server_wake') {
                 const loading = document.getElementById('studentSelectedStudentsLoading');
                 if (loading) loading.classList.remove('hidden');
@@ -409,6 +410,7 @@
                         populateFilters(allStudents);
                         applyFilters();
                     } catch (err) {
+                        console.error("Failed to reload selected students after wake:", err);
                         showError("Unable to load selected students. Please refresh.");
                     }
                 }, 2000);

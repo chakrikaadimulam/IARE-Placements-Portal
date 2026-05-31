@@ -22,10 +22,141 @@
         </div>
     </header>
 
-    <div id="studentProfileLoading" class="page-state">Loading your profile...</div>
-    <div id="studentProfileError" class="page-state hidden"></div>
+    <div id="studentProfileError" class="page-state page-state-error hidden"></div>
 
-    <section id="studentProfileContent" class="profile-layout hidden">
+    <section id="studentProfileSkeleton" class="profile-layout profile-skeleton" aria-hidden="true">
+        <div class="profile-header skel-stagger">
+            <div class="profile-header-content">
+                <div class="profile-avatar skel-pfp"></div>
+                <div class="profile-info">
+                    <div class="skeleton skel-title"></div>
+                    <div class="skeleton skel-line-med profile-skeleton-subtitle"></div>
+                    <div class="profile-tags profile-tags-skeleton">
+                        <span class="tag profile-tag-skeleton skeleton"></span>
+                        <span class="tag profile-tag-skeleton skeleton"></span>
+                        <span class="tag profile-tag-skeleton skeleton"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section skel-stagger">
+            <div class="section-header">
+                <div class="section-icon skeleton section-icon-skeleton"></div>
+                <div class="skeleton section-title-skeleton"></div>
+            </div>
+            <div class="grid grid-2 profile-skeleton-grid">
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section skel-stagger">
+            <div class="section-header">
+                <div class="section-icon skeleton section-icon-skeleton"></div>
+                <div class="skeleton section-title-skeleton"></div>
+            </div>
+            <div class="grid grid-3 profile-skeleton-grid">
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section skel-stagger">
+            <div class="section-header">
+                <div class="section-icon skeleton section-icon-skeleton"></div>
+                <div class="skeleton section-title-skeleton"></div>
+            </div>
+            <div class="grid grid-2 profile-skeleton-grid">
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-long"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+                <div class="detail-card detail-card-skeleton skeleton-card">
+                    <div class="skeleton skel-line-short"></div>
+                    <div class="skeleton skel-line-med"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="studentProfileContent" class="profile-layout profile-layout-enter hidden" aria-live="polite">
         <div class="profile-header">
             <div class="profile-header-content">
                 <div class="profile-avatar" id="profileAvatarShell">

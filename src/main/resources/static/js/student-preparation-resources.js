@@ -37,7 +37,7 @@
         if (resource.companyLogoUrl) {
             return [
                 '<div class="company-logo">',
-                '<img src="' + escapeHtml(resource.companyLogoUrl) + '" alt="' + escapeHtml(companyName) + ' logo" loading="lazy" onerror="this.closest(\'.company-logo\').classList.add(\'text-logo\');this.replaceWith(document.createTextNode(\'' + escapeHtml(getTextLogo(companyName)) + '\'));">',
+                '<img src="' + escapeHtml(resource.companyLogoUrl) + '" alt="' + escapeHtml(companyName) + ' logo" loading="lazy" decoding="async" width="60" height="60" onerror="this.closest(\'.company-logo\').classList.add(\'text-logo\');this.replaceWith(document.createTextNode(\'' + escapeHtml(getTextLogo(companyName)) + '\'));">',
                 "</div>"
             ].join("");
         }
@@ -317,9 +317,9 @@
         document.getElementById("modalDrive").textContent = getSafeText(resource.driveTitle, "N/A") + " | " + getSafeText(resource.hiringYear, "N/A");
 
         const modalLogo = document.getElementById("modalLogo");
-        modalLogo.className = "company-logo";
+            modalLogo.className = "company-logo";
         if (resource.companyLogoUrl) {
-            modalLogo.innerHTML = '<img src="' + escapeHtml(resource.companyLogoUrl) + '" alt="' + escapeHtml(getSafeText(resource.companyName, "N/A")) + ' logo">';
+            modalLogo.innerHTML = '<img src="' + escapeHtml(resource.companyLogoUrl) + '" alt="' + escapeHtml(getSafeText(resource.companyName, "N/A")) + ' logo" loading="lazy" decoding="async" width="60" height="60">';
             const modalImage = modalLogo.querySelector("img");
             if (modalImage) {
                 modalImage.onerror = function () {
@@ -424,6 +424,7 @@
             setupFilters();
             renderResources(allResources);
         } catch (error) {
+            console.error("Failed to load preparation resources:", error);
             if (error && error.code === 'server_wake') {
                 const loading = document.getElementById('studentResourceLoading');
                 if (loading) loading.classList.remove('hidden');
@@ -434,6 +435,7 @@
                         populateFilters(allResources);
                         renderResources(allResources);
                     } catch (err) {
+                        console.error("Failed to reload preparation resources after wake:", err);
                         showError('Unable to load resources. Please refresh.');
                     }
                 }, 2000);

@@ -1,4 +1,98 @@
 (function () {
+    function showElement(element) {
+        if (!element) {
+            return;
+        }
+
+        element.classList.remove("hidden");
+    }
+
+    function hideElement(element) {
+        if (!element) {
+            return;
+        }
+
+        element.classList.add("hidden");
+    }
+
+    function createLoadingState(elements) {
+        let activeTransition = null;
+
+        function clearError() {
+            if (elements.error) {
+                elements.error.textContent = "";
+                hideElement(elements.error);
+            }
+        }
+
+        function showSkeleton() {
+            clearError();
+            if (activeTransition) {
+                window.clearTimeout(activeTransition);
+                activeTransition = null;
+            }
+
+            if (elements.skeleton) {
+                elements.skeleton.classList.remove("is-fading-out");
+                showElement(elements.skeleton);
+            }
+
+            if (elements.content) {
+                elements.content.classList.remove("is-visible");
+                hideElement(elements.content);
+            }
+        }
+
+        function showContent() {
+            clearError();
+
+            if (elements.skeleton) {
+                elements.skeleton.classList.add("is-fading-out");
+            }
+
+            showElement(elements.content);
+
+            requestAnimationFrame(function () {
+                if (elements.content) {
+                    elements.content.classList.add("is-visible");
+                }
+            });
+
+            activeTransition = window.setTimeout(function () {
+                hideElement(elements.skeleton);
+                if (elements.skeleton) {
+                    elements.skeleton.classList.remove("is-fading-out");
+                }
+                activeTransition = null;
+            }, 260);
+        }
+
+        function showError(message) {
+            if (activeTransition) {
+                window.clearTimeout(activeTransition);
+                activeTransition = null;
+            }
+
+            hideElement(elements.skeleton);
+
+            if (elements.content) {
+                elements.content.classList.remove("is-visible");
+                hideElement(elements.content);
+            }
+
+            if (elements.error) {
+                elements.error.textContent = message;
+                showElement(elements.error);
+            }
+        }
+
+        return {
+            showSkeleton: showSkeleton,
+            showContent: showContent,
+            showError: showError
+        };
+    }
+
     function escapeHtml(value) {
         return String(value == null ? "" : value)
             .replace(/&/g, "&amp;")
@@ -133,9 +227,14 @@
     }
 
     document.addEventListener("DOMContentLoaded", async function () {
-        const loading = document.getElementById("studentProfileLoading");
+        const skeleton = document.getElementById("studentProfileSkeleton");
         const errorBox = document.getElementById("studentProfileError");
         const content = document.getElementById("studentProfileContent");
+        const loadingState = createLoadingState({
+            skeleton: skeleton,
+            error: errorBox,
+            content: content
+        });
         const authState = window.PlacementPortalAuth ? window.PlacementPortalAuth.getAuthState() : null;
 
         if (!authState || String(authState.role || "").toLowerCase() !== "student") {
@@ -143,18 +242,18 @@
             return;
         }
 
+        loadingState.showSkeleton();
+
         try {
             const profileUrl = authState.studentId && Number(authState.studentId) > 0
                 ? "/api/student/profile/" + encodeURIComponent(authState.studentId)
                 : "/api/student/profile/roll/" + encodeURIComponent(authState.rollNo || authState.username || "");
             const student = await fetchJson(profileUrl);
             renderProfile(student);
-            loading.classList.add("hidden");
-            content.classList.remove("hidden");
+            loadingState.showContent();
         } catch (error) {
-            loading.classList.add("hidden");
-            errorBox.textContent = error.message || "Unable to load your profile right now.";
-            errorBox.classList.remove("hidden");
+            console.error("Unable to load profile", error);
+            loadingState.showError("Unable to load profile. Please try again.");
         }
     });
 })();

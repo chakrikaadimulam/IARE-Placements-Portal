@@ -34,15 +34,33 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
                     )
                     from Company c
                     where (:adminView = true or c.active = true)
+                      and (
+                        :search = ''
+                        or lower(c.companyName) like lower(concat('%', :search, '%'))
+                        or lower(c.companyType) like lower(concat('%', :search, '%'))
+                        or lower(c.industry) like lower(concat('%', :search, '%'))
+                        or lower(coalesce(c.headquarters, '')) like lower(concat('%', :search, '%'))
+                        or cast(coalesce(c.foundedYear, 0) as string) like concat('%', :search, '%')
+                        or lower(cast(c.description as string)) like lower(concat('%', :search, '%'))
+                      )
                     order by c.createdAt desc, c.id desc
                     """,
             countQuery = """
                     select count(c)
                     from Company c
                     where (:adminView = true or c.active = true)
+                      and (
+                        :search = ''
+                        or lower(c.companyName) like lower(concat('%', :search, '%'))
+                        or lower(c.companyType) like lower(concat('%', :search, '%'))
+                        or lower(c.industry) like lower(concat('%', :search, '%'))
+                        or lower(coalesce(c.headquarters, '')) like lower(concat('%', :search, '%'))
+                        or cast(coalesce(c.foundedYear, 0) as string) like concat('%', :search, '%')
+                        or lower(cast(c.description as string)) like lower(concat('%', :search, '%'))
+                      )
                     """
     )
-    Page<CompanyListDto> findCompanyListPage(@Param("adminView") boolean adminView, Pageable pageable);
+    Page<CompanyListDto> findCompanyListPage(@Param("adminView") boolean adminView, @Param("search") String search, Pageable pageable);
 
     boolean existsByCompanyNameIgnoreCase(String companyName);
 
