@@ -56,7 +56,15 @@
     }
 
     function buildFallbackLogo(companyName) {
-        return '<div class="company-logo text-logo"><span>' + escapeHtml(safeText(companyName, "C").charAt(0).toUpperCase()) + "</span></div>";
+        return [
+            '<div class="company-logo-wrapper company-logo-fallback" aria-label="',
+            escapeHtml(companyName),
+            ' logo fallback">',
+            '<span class="company-logo-fallback-letter">',
+            escapeHtml(safeText(companyName, "C").charAt(0).toUpperCase()),
+            "</span>",
+            "</div>"
+        ].join("");
     }
 
     async function fetchCompanies(page, signal) {
@@ -122,17 +130,60 @@
 
         if (company.logoUrl) {
             return [
-                '<div class="company-logo">',
+                '<div class="company-logo-wrapper" data-company-logo-wrapper>',
                 '<img src="', escapeHtml(company.logoUrl),
-                '" alt="', escapeHtml(companyName), ' logo" loading="lazy" decoding="async" width="60" height="60"',
-                ' onerror="this.closest(\'.company-logo\').outerHTML=', "'",
-                buildFallbackLogo(companyName).replace(/'/g, "\\'"),
-                "'", ';">',
+                '" alt="', escapeHtml(companyName), ' logo" class="company-logo" loading="lazy" decoding="async" width="140" height="140">',
+                '<div class="company-logo-fallback hidden" data-company-logo-fallback aria-hidden="true">',
+                '<span class="company-logo-fallback-letter">',
+                escapeHtml(safeText(companyName, "C").charAt(0).toUpperCase()),
+                "</span>",
+                "</div>",
                 '</div>'
             ].join("");
         }
 
         return buildFallbackLogo(companyName);
+    }
+
+    function initCompanyLogos() {
+        const logos = document.querySelectorAll("[data-company-logo-wrapper] img.company-logo");
+
+        logos.forEach(function (image) {
+            if (image.dataset.logoHandled === "true") {
+                return;
+            }
+
+            const wrapper = image.closest("[data-company-logo-wrapper]");
+            const fallback = wrapper ? wrapper.querySelector("[data-company-logo-fallback]") : null;
+
+            function showFallback() {
+                if (fallback) {
+                    fallback.classList.remove("hidden");
+                    fallback.setAttribute("aria-hidden", "false");
+                }
+                image.classList.add("hidden");
+            }
+
+            function showImage() {
+                if (fallback) {
+                    fallback.classList.add("hidden");
+                    fallback.setAttribute("aria-hidden", "true");
+                }
+                image.classList.remove("hidden");
+            }
+
+            image.addEventListener("load", showImage, { once: true });
+            image.addEventListener("error", showFallback, { once: true });
+            image.dataset.logoHandled = "true";
+
+            if (image.complete) {
+                if (image.naturalWidth > 0) {
+                    showImage();
+                } else {
+                    showFallback();
+                }
+            }
+        });
     }
 
     function updateCompanyCount(count) {
@@ -256,6 +307,7 @@
         });
         list.innerHTML = markup;
 
+        initCompanyLogos();
         initCardObserver();
         initLucideIcons();
     }
