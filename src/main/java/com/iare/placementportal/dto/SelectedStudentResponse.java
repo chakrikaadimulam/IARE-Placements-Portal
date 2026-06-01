@@ -1,6 +1,5 @@
 package com.iare.placementportal.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record SelectedStudentResponse(
@@ -14,13 +13,11 @@ public record SelectedStudentResponse(
         String studentName,
         String rollNumber,
         String branch,
-        String section,
         String gender,
         String photoUrl,
         String packageOffered,
-        String roleOffered,
         String offerType,
-        LocalDate selectionDate,
+        Integer selectionYear,
         Boolean active,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

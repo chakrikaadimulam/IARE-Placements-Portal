@@ -12,7 +12,6 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,9 +36,6 @@ public class SelectedStudent {
     private String branch;
 
     @Column(nullable = false)
-    private String section;
-
-    @Column(nullable = false)
     private String gender;
 
     @Column(length = 1000)
@@ -49,13 +45,10 @@ public class SelectedStudent {
     private String packageOffered;
 
     @Column(nullable = false)
-    private String roleOffered;
-
-    @Column(nullable = false)
     private String offerType;
 
     @Column(nullable = false)
-    private LocalDate selectionDate;
+    private Integer selectionYear;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -121,14 +114,6 @@ public class SelectedStudent {
         this.branch = branch;
     }
 
-    public String getSection() {
-        return section;
-    }
-
-    public void setSection(String section) {
-        this.section = section;
-    }
-
     public String getGender() {
         return gender;
     }
@@ -153,14 +138,6 @@ public class SelectedStudent {
         this.packageOffered = packageOffered;
     }
 
-    public String getRoleOffered() {
-        return roleOffered;
-    }
-
-    public void setRoleOffered(String roleOffered) {
-        this.roleOffered = roleOffered;
-    }
-
     public String getOfferType() {
         return offerType;
     }
@@ -169,12 +146,12 @@ public class SelectedStudent {
         this.offerType = offerType;
     }
 
-    public LocalDate getSelectionDate() {
-        return selectionDate;
+    public Integer getSelectionYear() {
+        return selectionYear;
     }
 
-    public void setSelectionDate(LocalDate selectionDate) {
-        this.selectionDate = selectionDate;
+    public void setSelectionYear(Integer selectionYear) {
+        this.selectionYear = selectionYear;
     }
 
     public LocalDateTime getCreatedAt() {

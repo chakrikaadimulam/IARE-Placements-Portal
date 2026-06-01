@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Year;
 import java.util.List;
 
 @Service
@@ -120,6 +121,13 @@ public class SelectedStudentService {
 
     private void validateRequest(SelectedStudentRequest request) {
         validateUrl(request.photoUrl(), "Photo URL must be a valid URL.");
+        if (request.selectionYear() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selection Year is required.");
+        }
+        int currentYear = Year.now().getValue();
+        if (request.selectionYear() < 2000 || request.selectionYear() > currentYear + 10) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selection Year must be a valid year.");
+        }
     }
 
     private void validateUrl(String value, String message) {
@@ -145,13 +153,11 @@ public class SelectedStudentService {
         selectedStudent.setStudentName(request.studentName().trim());
         selectedStudent.setRollNumber(request.rollNumber().trim());
         selectedStudent.setBranch(request.branch().trim());
-        selectedStudent.setSection(request.section().trim());
         selectedStudent.setGender(request.gender().trim());
         selectedStudent.setPhotoUrl(normalizeOptional(request.photoUrl()));
         selectedStudent.setPackageOffered(request.packageOffered().trim());
-        selectedStudent.setRoleOffered(request.roleOffered().trim());
         selectedStudent.setOfferType(request.offerType().trim());
-        selectedStudent.setSelectionDate(request.selectionDate());
+        selectedStudent.setSelectionYear(request.selectionYear());
         if (selectedStudent.getActive() == null) {
             selectedStudent.setActive(true);
         }
@@ -180,13 +186,11 @@ public class SelectedStudentService {
                 selectedStudent.getStudentName(),
                 selectedStudent.getRollNumber(),
                 selectedStudent.getBranch(),
-                selectedStudent.getSection(),
                 selectedStudent.getGender(),
                 selectedStudent.getPhotoUrl(),
                 selectedStudent.getPackageOffered(),
-                selectedStudent.getRoleOffered(),
                 selectedStudent.getOfferType(),
-                selectedStudent.getSelectionDate(),
+                selectedStudent.getSelectionYear(),
                 selectedStudent.getActive(),
                 selectedStudent.getCreatedAt(),
                 selectedStudent.getUpdatedAt()

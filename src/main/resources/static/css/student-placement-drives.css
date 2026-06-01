@@ -208,6 +208,8 @@ body.student-placement-drives-page {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .results-count {
@@ -218,6 +220,80 @@ body.student-placement-drives-page {
 .results-count span {
     font-weight: 700;
     color: var(--black);
+}
+
+.pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.inline-loading-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 44px;
+    height: 36px;
+    padding: 0 0.65rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid var(--gray-200);
+}
+
+.inline-loading-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #a3a3a3;
+    animation: inlineLoadingPulse 0.9s ease-in-out infinite;
+}
+
+.inline-loading-dot:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.inline-loading-dot:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+@keyframes inlineLoadingPulse {
+    0%, 100% {
+        opacity: 0.35;
+        transform: translateY(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+}
+
+.pagination-btn {
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--black);
+    border-radius: var(--radius-full);
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--gray-100);
+}
+
+.pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: var(--gray-700);
+    font-weight: 600;
 }
 
 .cards-grid {
@@ -523,6 +599,10 @@ body.student-placement-drives-page {
 
     .statistics-page-header {
         gap: 0.85rem;
+    }
+
+    .results-header {
+        align-items: flex-start;
     }
 
     .back-btn {

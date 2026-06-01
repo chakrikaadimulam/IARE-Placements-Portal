@@ -75,13 +75,6 @@
                             <input id="branch" name="branch" type="text" placeholder="CSE" required>
                         </div>
                         <div>
-                            <label for="section">Section</label>
-                            <input id="section" name="section" type="text" placeholder="A" required>
-                        </div>
-                    </div>
-
-                    <div class="selected-form-grid">
-                        <div>
                             <label for="gender">Gender</label>
                             <select id="gender" name="gender" required>
                                 <option value="">Select gender</option>
@@ -90,6 +83,9 @@
                                 <option>Other</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div class="selected-form-grid">
                         <div>
                             <label for="photoUrl">Photo URL</label>
                             <input id="photoUrl" name="photoUrl" type="url" placeholder="https://example.com/student-photo.jpg">
@@ -102,13 +98,6 @@
                             <input id="packageOffered" name="packageOffered" type="text" placeholder="8 LPA" required>
                         </div>
                         <div>
-                            <label for="roleOffered">Role Offered</label>
-                            <input id="roleOffered" name="roleOffered" type="text" placeholder="Software Engineer" required>
-                        </div>
-                    </div>
-
-                    <div class="selected-form-grid">
-                        <div>
                             <label for="offerType">Offer Type</label>
                             <select id="offerType" name="offerType" required>
                                 <option value="">Select offer type</option>
@@ -118,8 +107,8 @@
                             </select>
                         </div>
                         <div>
-                            <label for="selectionDate">Selection Date</label>
-                            <input id="selectionDate" name="selectionDate" type="date" required>
+                            <label for="selectionYear">Selection Year</label>
+                            <input id="selectionYear" name="selectionYear" type="number" min="2000" max="2100" placeholder="2026" required>
                         </div>
                     </div>
 

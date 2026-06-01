@@ -2,6 +2,8 @@ package com.iare.placementportal.service;
 
 import com.iare.placementportal.dto.PlacementDriveExcelUploadError;
 import com.iare.placementportal.dto.PlacementDriveExcelUploadResponse;
+import com.iare.placementportal.dto.PlacementDriveFilterOptionsResponse;
+import com.iare.placementportal.dto.PlacementDrivePageResponse;
 import com.iare.placementportal.dto.PlacementDriveRequest;
 import com.iare.placementportal.dto.PlacementDriveResponse;
 import com.iare.placementportal.entity.Company;
@@ -20,6 +22,9 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +51,9 @@ public class PlacementDriveService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlacementDriveService.class);
     private static final DataFormatter DATA_FORMATTER = new DataFormatter();
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 50;
     private static final List<DateTimeFormatter> DATE_FORMATTERS = List.of(
             DateTimeFormatter.ISO_LOCAL_DATE,
             DateTimeFormatter.ofPattern("d/M/yyyy"),
@@ -93,6 +101,37 @@ public class PlacementDriveService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PlacementDrivePageResponse getActiveDrivesPaginated(int page, int size, String search,
+                                                               Integer hiringYear, String driveStatus, String jobType) {
+        Pageable pageable = buildPageable(page, size);
+        Page<PlacementDrive> drivePage = placementDriveRepository.findStudentDrivePage(
+                normalizeSearch(search),
+                hiringYear,
+                normalizeFilter(driveStatus),
+                normalizeFilter(jobType),
+                pageable
+        );
+
+        return new PlacementDrivePageResponse(
+                drivePage.getContent().stream().map(this::toResponse).toList(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                drivePage.getTotalElements(),
+                drivePage.getTotalPages(),
+                drivePage.isFirst(),
+                drivePage.isLast()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public PlacementDriveFilterOptionsResponse getStudentDriveFilterOptions() {
+        return new PlacementDriveFilterOptionsResponse(
+                placementDriveRepository.findDistinctActiveHiringYears(),
+                placementDriveRepository.findDistinctActiveJobTypes()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -214,6 +253,21 @@ public class PlacementDriveService {
     private PlacementDrive findDriveOrThrow(Long id) {
         return placementDriveRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Placement drive not found."));
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        int safePage = Math.max(page, DEFAULT_PAGE);
+        int safeSize = size <= 0 ? DEFAULT_SIZE : Math.min(size, MAX_PAGE_SIZE);
+        return PageRequest.of(safePage, safeSize);
+    }
+
+    private String normalizeSearch(String search) {
+        return search == null ? "" : search.trim();
+    }
+
+    private String normalizeFilter(String value) {
+        String normalized = normalizeOptional(value);
+        return normalized == null ? "" : normalized;
     }
 
     private void validateRequest(PlacementDriveRequest request) {

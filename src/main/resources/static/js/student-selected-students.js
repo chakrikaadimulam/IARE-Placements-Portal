@@ -17,25 +17,13 @@
         return normalized || fallback;
     }
 
-    function formatDate(dateString) {
-        if (!dateString) {
-            return "N/A";
-        }
-
-        const date = new Date(dateString);
-        if (Number.isNaN(date.getTime())) {
-            return "N/A";
-        }
-
-        return date.toLocaleDateString("en-IN", {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        });
+    function formatSelectionYear(value) {
+        const normalized = String(value == null ? "" : value).trim();
+        return normalized || "N/A";
     }
 
     async function fetchSelectedStudents() {
-        const result = await window.apiClient.cachedGet('selected_students_v1', SELECTED_STUDENTS_API, 120000);
+        const result = await window.apiClient.cachedGet('selected_students_v2', SELECTED_STUDENTS_API, 120000);
         return Array.isArray(result.data) ? result.data : [];
     }
 
@@ -80,10 +68,6 @@
             return safeText(student.branch, "");
         }), "All Branches");
 
-        populateSelect("sectionFilter", students.map(function (student) {
-            return safeText(student.section, "");
-        }), "All Sections");
-
         populateSelect("companyFilter", students.map(function (student) {
             return safeText(student.companyName, "");
         }), "All Companies");
@@ -96,24 +80,22 @@
             safeText(student.companyName, ""),
             safeText(student.driveTitle, ""),
             safeText(student.branch, ""),
-            safeText(student.section, ""),
-            safeText(student.packageOffered, "")
+            safeText(student.packageOffered, ""),
+            safeText(student.selectionYear, "")
         ].join(" ").toLowerCase();
     }
 
     function applyFilters() {
         const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
         const branchValue = document.getElementById("branchFilter").value;
-        const sectionValue = document.getElementById("sectionFilter").value;
         const companyValue = document.getElementById("companyFilter").value;
 
         visibleStudents = allStudents.filter(function (student) {
             const matchesQuery = !searchValue || buildStudentSearch(student).includes(searchValue);
             const matchesBranch = !branchValue || safeText(student.branch, "N/A") === branchValue;
-            const matchesSection = !sectionValue || safeText(student.section, "N/A") === sectionValue;
             const matchesCompany = !companyValue || safeText(student.companyName, "N/A") === companyValue;
 
-            return matchesQuery && matchesBranch && matchesSection && matchesCompany;
+            return matchesQuery && matchesBranch && matchesCompany;
         });
 
         renderStudents(visibleStudents);
@@ -151,13 +133,11 @@
             const hiringYear = safeText(student.hiringYear, "N/A");
             const offerType = safeText(student.offerType, "N/A");
             const packageOffered = safeText(student.packageOffered, "N/A");
-            const roleOffered = safeText(student.roleOffered, "N/A");
             const studentName = safeText(student.studentName, "Student");
             const rollNumber = safeText(student.rollNumber, "N/A");
             const branch = safeText(student.branch, "N/A");
-            const section = safeText(student.section, "N/A");
             const gender = safeText(student.gender, "N/A");
-            const selectionDate = formatDate(student.selectionDate);
+            const selectionYear = formatSelectionYear(student.selectionYear);
             const photoUrl = getStudentPhotoUrl(student) || getAvatarFallbackUrl(student);
 
             const card = document.createElement("article");
@@ -167,9 +147,8 @@
             card.dataset.name = studentName;
             card.dataset.roll = rollNumber;
             card.dataset.branch = branch;
-            card.dataset.section = section;
             card.dataset.package = packageOffered;
-            card.dataset.date = selectionDate;
+            card.dataset.year = selectionYear;
             card.dataset.img = photoUrl;
 
             card.innerHTML = [
@@ -187,7 +166,6 @@
                 '<div class="job-badges">',
                 '<span class="job-badge outline">', escapeHtml(offerType), "</span>",
                 '<span class="job-badge filled">', escapeHtml(packageOffered), "</span>",
-                '<span class="job-badge filled">', escapeHtml(roleOffered), "</span>",
                 "</div>",
 
                 '<div class="student-row">',
@@ -196,8 +174,8 @@
                 "</div>",
                 '<div class="student-details">',
                 '<h4 class="student-name">', escapeHtml(studentName), "</h4>",
-                '<p class="student-meta-line">', escapeHtml(rollNumber), " &nbsp;&nbsp;|&nbsp;&nbsp; ", escapeHtml(branch), " &nbsp;&nbsp;|&nbsp;&nbsp; ", escapeHtml(section), "</p>",
-                '<p class="student-meta-line">Gender: ', escapeHtml(gender), " &nbsp;&nbsp;&nbsp; Selection Date: ", escapeHtml(selectionDate), "</p>",
+                '<p class="student-meta-line">', escapeHtml(rollNumber), " &nbsp;&nbsp;|&nbsp;&nbsp; ", escapeHtml(branch), "</p>",
+                '<p class="student-meta-line">Gender: ', escapeHtml(gender), " &nbsp;&nbsp;&nbsp; Selection Year: ", escapeHtml(selectionYear), "</p>",
                 "</div>",
                 "</div>"
             ].join("");
@@ -298,9 +276,8 @@
         document.getElementById("modalRoll").textContent = card.dataset.roll || "N/A";
         document.getElementById("modalCompany").textContent = card.dataset.company || "N/A";
         document.getElementById("modalBranch").textContent = card.dataset.branch || "N/A";
-        document.getElementById("modalSection").textContent = card.dataset.section || "N/A";
         document.getElementById("modalPackage").textContent = card.dataset.package || "N/A";
-        document.getElementById("modalDate").textContent = card.dataset.date || "N/A";
+        document.getElementById("modalYear").textContent = card.dataset.year || "N/A";
 
         if (window.lucide && typeof window.lucide.createIcons === "function") {
             window.lucide.createIcons();
@@ -363,7 +340,7 @@
     }
 
     function setupFilters() {
-        ["searchInput", "branchFilter", "sectionFilter", "companyFilter"].forEach(function (id) {
+        ["searchInput", "branchFilter", "companyFilter"].forEach(function (id) {
             const element = document.getElementById(id);
             if (!element) return;
 

@@ -2,6 +2,8 @@ package com.iare.placementportal.controller;
 
 import com.iare.placementportal.dto.ApiErrorResponse;
 import com.iare.placementportal.dto.PlacementDriveExcelUploadResponse;
+import com.iare.placementportal.dto.PlacementDriveFilterOptionsResponse;
+import com.iare.placementportal.dto.PlacementDrivePageResponse;
 import com.iare.placementportal.dto.PlacementDriveRequest;
 import com.iare.placementportal.dto.PlacementDriveResponse;
 import com.iare.placementportal.service.PlacementDriveService;
@@ -9,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping
@@ -93,6 +97,38 @@ public class PlacementDriveController {
     @GetMapping("/api/student/placement-drives")
     public List<PlacementDriveResponse> getActiveDrives() {
         return placementDriveService.getActiveDrivesForStudents();
+    }
+
+    @GetMapping("/api/placement-drives")
+    public ResponseEntity<?> getActiveDrivesPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Integer hiringYear,
+            @RequestParam(defaultValue = "") String driveStatus,
+            @RequestParam(defaultValue = "") String jobType) {
+        try {
+            PlacementDrivePageResponse response = placementDriveService.getActiveDrivesPaginated(
+                    page, size, search, hiringYear, driveStatus, jobType
+            );
+            return ResponseEntity.ok()
+                    .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
+                    .body(response);
+        } catch (Exception exception) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiErrorResponse(
+                            "Unable to load placement drives.",
+                            exception.getMessage(),
+                            LocalDateTime.now()
+                    ));
+        }
+    }
+
+    @GetMapping("/api/placement-drives/filter-options")
+    public ResponseEntity<PlacementDriveFilterOptionsResponse> getPlacementDriveFilterOptions() {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePublic())
+                .body(placementDriveService.getStudentDriveFilterOptions());
     }
 
     @GetMapping("/api/student/placement-drives/company/{companyId}")

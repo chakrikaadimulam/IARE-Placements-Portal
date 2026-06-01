@@ -36,15 +36,9 @@
             .replace(/'/g, "&#39;");
     }
 
-    function formatDate(dateString) {
-        if (!dateString) {
-            return "";
-        }
-        return new Date(dateString).toLocaleDateString("en-IN", {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        });
+    function formatSelectionYear(value) {
+        const normalized = String(value == null ? "" : value).trim();
+        return normalized || "N/A";
     }
 
     function setFeedback(message, isError) {
@@ -146,13 +140,11 @@
         document.getElementById("studentName").value = student.studentName || "";
         document.getElementById("rollNumber").value = student.rollNumber || "";
         document.getElementById("branch").value = student.branch || "";
-        document.getElementById("section").value = student.section || "";
         document.getElementById("gender").value = student.gender || "";
         document.getElementById("photoUrl").value = student.photoUrl || "";
         document.getElementById("packageOffered").value = student.packageOffered || "";
-        document.getElementById("roleOffered").value = student.roleOffered || "";
         document.getElementById("offerType").value = student.offerType || "";
-        document.getElementById("selectionDate").value = student.selectionDate || "";
+        document.getElementById("selectionYear").value = student.selectionYear || "";
         document.getElementById("submitSelectedStudentButton").textContent = "Update Student";
         document.getElementById("cancelSelectedStudentEditButton").classList.remove("hidden");
         renderDrivePreview(student.placementDriveId);
@@ -166,19 +158,17 @@
             studentName: form.elements.studentName.value.trim(),
             rollNumber: form.elements.rollNumber.value.trim(),
             branch: form.elements.branch.value.trim(),
-            section: form.elements.section.value.trim(),
             gender: form.elements.gender.value,
             photoUrl: form.elements.photoUrl.value.trim(),
             packageOffered: form.elements.packageOffered.value.trim(),
-            roleOffered: form.elements.roleOffered.value.trim(),
             offerType: form.elements.offerType.value,
-            selectionDate: form.elements.selectionDate.value
+            selectionYear: form.elements.selectionYear.value ? Number(form.elements.selectionYear.value) : null
         };
     }
 
     function validatePayload(payload) {
-        if (!payload.placementDriveId || !payload.studentName || !payload.rollNumber || !payload.branch || !payload.section
-            || !payload.gender || !payload.packageOffered || !payload.roleOffered || !payload.offerType || !payload.selectionDate) {
+        if (!payload.placementDriveId || !payload.studentName || !payload.rollNumber || !payload.branch
+            || !payload.gender || !payload.packageOffered || !payload.offerType || !payload.selectionYear) {
             return "Please fill all required selected student fields.";
         }
         return "";
@@ -234,20 +224,19 @@
                     '<div class="selected-badges">',
                     '<span class="offer-type-badge">' + escapeHtml(student.offerType) + "</span>",
                     '<span class="badge-pill">' + escapeHtml(student.packageOffered) + "</span>",
-                    '<span class="badge-pill">' + escapeHtml(student.roleOffered) + "</span>",
                     "</div>",
                     '<div class="selected-student-row">',
                     getPhotoMarkup(student),
                     '<div class="selected-student-group">',
                     "<div>",
                     "<h4>" + escapeHtml(student.studentName) + "</h4>",
-                    "<p>" + escapeHtml(student.rollNumber) + " | " + escapeHtml(student.branch) + " | " + escapeHtml(student.section) + "</p>",
+                    "<p>" + escapeHtml(student.rollNumber) + " | " + escapeHtml(student.branch) + "</p>",
                     "</div>",
                     "</div>",
                     "</div>",
                     '<div class="selected-meta">',
                     "<span>Gender: " + escapeHtml(student.gender) + "</span>",
-                    "<span>Selection Date: " + formatDate(student.selectionDate) + "</span>",
+                    "<span>Selection Year: " + escapeHtml(formatSelectionYear(student.selectionYear)) + "</span>",
                     "</div>",
                     '<div class="selected-actions">',
                     '<button class="mini-btn toggle-selected-btn" type="button" data-selected-id="' + student.id + '" data-active="' + student.active + '">'

@@ -1,6 +1,20 @@
 (function () {
-    const DRIVES_API = "/api/student/placement-drives";
-    let allDrives = [];
+    const DRIVES_API = "/api/placement-drives";
+    const DRIVE_FILTERS_API = "/api/placement-drives/filter-options";
+    const PAGE_SIZE = 20;
+    const SEARCH_DEBOUNCE_MS = 300;
+    const drivesPageCache = new Map();
+    let currentPage = 0;
+    let totalPages = 0;
+    let totalElements = 0;
+    let currentSearch = "";
+    let currentYearFilter = "";
+    let currentStatusFilter = "";
+    let currentJobTypeFilter = "";
+    let currentPageDrives = [];
+    let isDrivesLoading = false;
+    let activeDrivesRequest = null;
+    let searchDebounceTimer = null;
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -9,11 +23,6 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
-    }
-
-    async function fetchDrives() {
-        const result = await window.apiClient.cachedGet('placement_drives_v1', DRIVES_API, 120000);
-        return Array.isArray(result.data) ? result.data : [];
     }
 
     function safeText(value, fallback) {
@@ -56,10 +65,6 @@
     }
 
     function getStatusClass(status) {
-        const normalized = safeText(status, "Closed").toLowerCase();
-        if (normalized === "upcoming") return "badge";
-        if (normalized === "ongoing") return "badge";
-        if (normalized === "completed") return "badge";
         return "badge";
     }
 
@@ -78,7 +83,7 @@
             return [
                 '<div class="company-logo">',
                 '<img src="', escapeHtml(drive.companyLogoUrl), '" alt="', escapeHtml(companyName), ' logo" loading="lazy" decoding="async" width="60" height="60">',
-                '</div>'
+                "</div>"
             ].join("");
         }
 
@@ -109,7 +114,55 @@
         if (storedTitle && storedTitle !== generatedTitle) {
             return storedTitle;
         }
-        return safeText(drive.companyName, "Company") + " • Hiring Year " + safeText(drive.hiringYear, "N/A");
+        return safeText(drive.companyName, "Company") + " - Hiring Year " + safeText(drive.hiringYear, "N/A");
+    }
+
+    async function fetchDrivePage(page, signal) {
+        const params = new URLSearchParams({
+            page: String(Math.max(0, Number(page) || 0)),
+            size: String(PAGE_SIZE)
+        });
+        if (currentSearch) params.set("search", currentSearch);
+        if (currentYearFilter) params.set("hiringYear", currentYearFilter);
+        if (currentStatusFilter) params.set("driveStatus", currentStatusFilter);
+        if (currentJobTypeFilter) params.set("jobType", currentJobTypeFilter);
+
+        const response = await fetch(DRIVES_API + "?" + params.toString(), {
+            method: "GET",
+            signal,
+            headers: { Accept: "application/json" }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load placement drives. Please try again.");
+        }
+
+        if (!payload || !Array.isArray(payload.content)) {
+            throw new Error("Invalid placement drives response received.");
+        }
+
+        return payload;
+    }
+
+    async function fetchDriveFilterOptions() {
+        const response = await fetch(DRIVE_FILTERS_API, {
+            method: "GET",
+            headers: { Accept: "application/json" }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load drive filters.");
+        }
+
+        return payload || { hiringYears: [], jobTypes: [] };
     }
 
     function buildDetailItem(icon, label, value) {
@@ -130,48 +183,33 @@
         ].join("");
     }
 
-    function populateYearFilter(drives) {
+    function populateYearFilter(years) {
         const yearFilter = document.getElementById("driveYearFilter");
         if (!yearFilter) return;
 
-        const years = Array.from(
-            new Set(
-                drives
-                    .map(function (drive) { return drive.hiringYear; })
-                    .filter(Boolean)
-            )
-        ).sort(function (first, second) {
-            return Number(second) - Number(first);
-        });
-
         yearFilter.innerHTML = '<option value="">All Hiring Years</option>';
-        years.forEach(function (year) {
+        (years || []).forEach(function (year) {
             const option = document.createElement("option");
             option.value = String(year);
             option.textContent = String(year);
             yearFilter.appendChild(option);
         });
+        yearFilter.value = currentYearFilter;
     }
 
-    function populateJobTypeFilter(drives) {
+    function populateJobTypeFilter(jobTypes) {
         const jobTypeFilter = document.getElementById("driveJobTypeFilter");
         if (!jobTypeFilter) return;
 
-        const jobTypes = Array.from(
-            new Set(
-                drives
-                    .map(function (drive) { return formatJobType(drive.jobType); })
-                    .filter(Boolean)
-            )
-        );
-
         jobTypeFilter.innerHTML = '<option value="">All Job Types</option>';
-        jobTypes.forEach(function (jobType) {
+        (jobTypes || []).forEach(function (jobType) {
+            const formatted = formatJobType(jobType);
             const option = document.createElement("option");
-            option.value = jobType;
-            option.textContent = jobType;
+            option.value = formatted;
+            option.textContent = formatted;
             jobTypeFilter.appendChild(option);
         });
+        jobTypeFilter.value = currentJobTypeFilter;
     }
 
     function updateDriveCount(count) {
@@ -181,32 +219,40 @@
         }
     }
 
-    function buildCardSearchText(drive) {
-        return [
-            safeText(drive.companyName, ""),
-            safeText(drive.driveTitle, ""),
-            safeText(drive.hiringYear, ""),
-            safeText(drive.driveStatus, ""),
-            safeText(drive.jobType, "")
-        ].join(" ").toLowerCase();
+    function updatePaginationControls() {
+        const prevButton = document.getElementById("drivesPrevButton");
+        const nextButton = document.getElementById("drivesNextButton");
+        const pageInfo = document.getElementById("drivesPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = isDrivesLoading || currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = isDrivesLoading || totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
     }
 
-    function filterDrives() {
-        const searchValue = document.getElementById("driveSearchInput").value.trim().toLowerCase();
-        const yearValue = document.getElementById("driveYearFilter").value;
-        const statusValue = document.getElementById("driveStatusFilter").value;
-        const jobTypeValue = document.getElementById("driveJobTypeFilter").value;
+    function setListLoading(isLoading, initialLoad) {
+        const loadingElement = document.getElementById("studentDrivesLoading");
+        const loadingHint = document.getElementById("drivesInlineLoading");
+        const list = document.getElementById("studentDriveList");
+        const emptyState = document.getElementById("studentDriveEmpty");
 
-        const filteredDrives = allDrives.filter(function (drive) {
-            const matchesSearch = !searchValue || buildCardSearchText(drive).includes(searchValue);
-            const matchesYear = !yearValue || String(drive.hiringYear || "") === yearValue;
-            const matchesStatus = !statusValue || safeText(drive.driveStatus, "Closed") === statusValue;
-            const matchesJobType = !jobTypeValue || formatJobType(drive.jobType) === jobTypeValue;
-
-            return matchesSearch && matchesYear && matchesStatus && matchesJobType;
-        });
-
-        renderDrives(filteredDrives);
+        if (loadingElement) {
+            loadingElement.classList.toggle("hidden", !(isLoading && initialLoad));
+        }
+        if (list && initialLoad) {
+            list.classList.toggle("hidden", isLoading);
+        }
+        if (emptyState && isLoading) {
+            emptyState.classList.add("hidden");
+        }
+        if (loadingHint) {
+            loadingHint.classList.toggle("hidden", !(isLoading && !initialLoad));
+        }
     }
 
     function renderDrives(drives) {
@@ -217,26 +263,32 @@
         if (loadingElement) {
             loadingElement.classList.add("hidden");
         }
-        if (!list) {
+        if (!list || !emptyState) {
             return;
         }
 
+        list.classList.remove("hidden");
         list.innerHTML = "";
-        updateDriveCount(drives.length);
+        updateDriveCount(totalElements);
+        updatePaginationControls();
 
         if (!drives.length) {
-            if (emptyState) {
-                emptyState.classList.remove("hidden");
-            }
-            if (window.lucide && typeof window.lucide.createIcons === "function") {
-                window.lucide.createIcons();
-            }
+            list.classList.add("hidden");
+            emptyState.innerHTML = [
+                '<i data-lucide="briefcase"></i>',
+                currentSearch || currentYearFilter || currentStatusFilter || currentJobTypeFilter
+                    ? "<h3>No matching drives found</h3>"
+                    : "<h3>No drives found</h3>",
+                currentSearch || currentYearFilter || currentStatusFilter || currentJobTypeFilter
+                    ? "<p>Try adjusting your search or filters.</p>"
+                    : "<p>Placement drives will appear here once they are available.</p>"
+            ].join("");
+            emptyState.classList.remove("hidden");
+            initLucideIcons();
             return;
         }
 
-        if (emptyState) {
-            emptyState.classList.add("hidden");
-        }
+        emptyState.classList.add("hidden");
 
         drives.forEach(function (drive) {
             const displayTitle = getDisplayDriveTitle(drive);
@@ -261,13 +313,11 @@
                 "</div>",
                 "</div>",
                 "</div>",
-
                 '<div class="card-badges">',
                 '<span class="', getStatusClass(drive.driveStatus), '">', escapeHtml(safeText(drive.driveStatus, "Closed")), "</span>",
                 '<span class="badge">', escapeHtml(safeText(drive.hiringMode, "N/A")), "</span>",
                 '<span class="badge">', escapeHtml(formatJobType(drive.jobType)), "</span>",
                 "</div>",
-
                 '<div class="card-details-grid">',
                 buildDetailItem("calendar", "Hiring Date", formatDate(drive.hiringDate)),
                 buildDetailItem("map-pin", "Location", safeText(drive.hiringLocation, "N/A")),
@@ -278,7 +328,6 @@
                 buildDetailItem("briefcase", "Stipend", safeText(drive.stipend, "N/A")),
                 buildDetailItem("layers", "Rounds", safeText(drive.roundNames, drive.numberOfRounds != null ? safeNumber(drive.numberOfRounds, "0") : "N/A")),
                 "</div>",
-
                 '<div class="card-timeline">',
                 buildTimelineStep("REGISTRATION", formatDate(drive.registrationDeadline)),
                 '<i data-lucide="arrow-right" class="timeline-arrow"></i>',
@@ -286,7 +335,6 @@
                 '<i data-lucide="arrow-right" class="timeline-arrow"></i>',
                 buildTimelineStep("INTERVIEW", formatDate(drive.interviewDate)),
                 "</div>",
-
                 '<div class="card-footer">',
                 websiteMarkup,
                 '<div class="status-dot ', getStatusDotClass(drive.driveStatus), '"></div>',
@@ -301,43 +349,84 @@
         });
 
         initCardObserver();
-
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-        }
+        initLucideIcons();
     }
 
     function showError(message) {
         const loadingElement = document.getElementById("studentDrivesLoading");
+        const loadingHint = document.getElementById("drivesInlineLoading");
         const emptyState = document.getElementById("studentDriveEmpty");
+        const list = document.getElementById("studentDriveList");
 
         if (loadingElement) {
             loadingElement.classList.add("hidden");
         }
+        if (loadingHint) {
+            loadingHint.classList.add("hidden");
+        }
+        if (list) {
+            list.classList.add("hidden");
+        }
         if (emptyState) {
             emptyState.innerHTML = [
                 '<i data-lucide="briefcase"></i>',
-                "<h3>No drives found</h3>",
-                "<p>", escapeHtml(message || "Unable to load placement drives right now."), "</p>"
+                "<h3>Unable to load placement drives.</h3>",
+                "<p>", escapeHtml(message || "Please try again."), "</p>"
             ].join("");
             emptyState.classList.remove("hidden");
         }
 
+        totalElements = 0;
+        totalPages = 0;
+        currentPageDrives = [];
         updateDriveCount(0);
-
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-        }
+        updatePaginationControls();
+        initLucideIcons();
     }
 
     function setupFilters() {
-        ["driveSearchInput", "driveYearFilter", "driveStatusFilter", "driveJobTypeFilter"].forEach(function (id) {
-            const element = document.getElementById(id);
-            if (!element) return;
+        const searchInput = document.getElementById("driveSearchInput");
+        const yearFilter = document.getElementById("driveYearFilter");
+        const statusFilter = document.getElementById("driveStatusFilter");
+        const jobTypeFilter = document.getElementById("driveJobTypeFilter");
 
-            element.addEventListener("input", filterDrives);
-            element.addEventListener("change", filterDrives);
-        });
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const nextSearch = searchInput.value.trim();
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+                searchDebounceTimer = setTimeout(function () {
+                    currentSearch = nextSearch;
+                    clearDrivesCache();
+                    loadDrives(0, { force: true, initialLoad: false });
+                }, SEARCH_DEBOUNCE_MS);
+            });
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener("change", function () {
+                currentYearFilter = yearFilter.value;
+                clearDrivesCache();
+                loadDrives(0, { force: true, initialLoad: false });
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener("change", function () {
+                currentStatusFilter = statusFilter.value;
+                clearDrivesCache();
+                loadDrives(0, { force: true, initialLoad: false });
+            });
+        }
+
+        if (jobTypeFilter) {
+            jobTypeFilter.addEventListener("change", function () {
+                currentJobTypeFilter = jobTypeFilter.value;
+                clearDrivesCache();
+                loadDrives(0, { force: true, initialLoad: false });
+            });
+        }
     }
 
     function addRipple(event, element) {
@@ -397,6 +486,7 @@
         }
 
         cards.forEach(function (card) {
+            cardObserver.unobserve(card);
             cardObserver.observe(card);
         });
     }
@@ -417,37 +507,139 @@
         }
     }
 
+    function buildCacheKey(page) {
+        return [
+            Number(page) || 0,
+            PAGE_SIZE,
+            currentSearch,
+            currentYearFilter,
+            currentStatusFilter,
+            currentJobTypeFilter
+        ].join("|");
+    }
+
+    function storePageInCache(page, payload) {
+        drivesPageCache.set(buildCacheKey(page), payload);
+    }
+
+    function getCachedPage(page) {
+        return drivesPageCache.get(buildCacheKey(page)) || null;
+    }
+
+    function clearDrivesCache() {
+        drivesPageCache.clear();
+    }
+
+    async function prefetchDrivesPage(page) {
+        const safePage = Number(page) || 0;
+        if (safePage < 0 || safePage >= totalPages || getCachedPage(safePage)) {
+            return;
+        }
+
+        const controller = new AbortController();
+        try {
+            const payload = await fetchDrivePage(safePage, controller.signal);
+            storePageInCache(safePage, payload);
+        } catch (error) {
+            console.error("Failed to prefetch placement drives page:", safePage, error);
+        }
+    }
+
+    function applyPagePayload(payload) {
+        currentPage = Number(payload.page) || 0;
+        totalPages = Number(payload.totalPages) || 0;
+        totalElements = Number(payload.totalElements) || 0;
+        currentPageDrives = Array.isArray(payload.content) ? payload.content : [];
+        renderDrives(currentPageDrives);
+        void prefetchDrivesPage(currentPage + 1);
+    }
+
+    async function loadDrives(page, options) {
+        options = options || {};
+        const safePage = Math.max(0, Number(page) || 0);
+        const initialLoad = Boolean(options.initialLoad);
+
+        if (isDrivesLoading && !options.force) {
+            return;
+        }
+
+        const cachedPage = getCachedPage(safePage);
+        if (cachedPage) {
+            setListLoading(false, initialLoad);
+            applyPagePayload(cachedPage);
+            return;
+        }
+
+        if (activeDrivesRequest) {
+            activeDrivesRequest.abort();
+        }
+
+        activeDrivesRequest = new AbortController();
+        isDrivesLoading = true;
+        updatePaginationControls();
+        setListLoading(true, initialLoad);
+
+        try {
+            const payload = await fetchDrivePage(safePage, activeDrivesRequest.signal);
+            storePageInCache(safePage, payload);
+            applyPagePayload(payload);
+
+            if (!currentPageDrives.length && currentPage > 0 && totalPages > 0) {
+                await loadDrives(totalPages - 1, { force: true, initialLoad: false });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("Failed to load placement drives:", error);
+            showError("Unable to load placement drives. Please try again.");
+        } finally {
+            isDrivesLoading = false;
+            activeDrivesRequest = null;
+            updatePaginationControls();
+            setListLoading(false, initialLoad);
+        }
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById("drivesPrevButton");
+        const nextButton = document.getElementById("drivesNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    loadDrives(currentPage - 1, { initialLoad: false });
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages - 1) {
+                    loadDrives(currentPage + 1, { initialLoad: false });
+                }
+            });
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", async function () {
         initLucideIcons();
         initScrollProgress();
         setupBackButton();
+        setupPagination();
+        setupFilters();
+        updatePaginationControls();
+        setListLoading(true, true);
 
         try {
-            allDrives = await fetchDrives();
-            populateYearFilter(allDrives);
-            populateJobTypeFilter(allDrives);
-            setupFilters();
-            renderDrives(allDrives);
+            const filterOptions = await fetchDriveFilterOptions();
+            populateYearFilter(filterOptions.hiringYears || []);
+            populateJobTypeFilter(filterOptions.jobTypes || []);
+            await loadDrives(0, { initialLoad: true });
         } catch (error) {
-            console.error("Failed to load placement drives:", error);
-            if (error && error.code === 'server_wake') {
-                const loading = document.getElementById('studentDrivesLoading');
-                if (loading) loading.classList.remove('hidden');
-                setTimeout(async function () {
-                    try {
-                        allDrives = await fetchDrives();
-                        populateYearFilter(allDrives);
-                        populateJobTypeFilter(allDrives);
-                        renderDrives(allDrives);
-                    } catch (err) {
-                        console.error("Failed to reload placement drives after wake:", err);
-                        showError("Unable to load placement drives. Please refresh.");
-                    }
-                }, 2000);
-                return;
-            }
-
-            showError("Unable to load placement drives. Please refresh.");
+            console.error("Failed to initialize placement drives page:", error);
+            showError("Unable to load placement drives. Please try again.");
         }
     });
 })();
