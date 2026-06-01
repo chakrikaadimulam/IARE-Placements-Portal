@@ -90,3 +90,194 @@ body.student-statistics-page { font-family:'DM Sans',sans-serif; background:var(
 @media (max-width:1100px) { .cards-grid { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:768px) { .statistics-main { padding:1.5rem 15px 3rem; width:100%; } .statistics-page-header { gap:.85rem; } .back-btn { align-self:center; } .controls-section { gap:1rem; padding:1rem; } .filters-row { width:100%; min-width:100%; } .cards-grid { grid-template-columns:1fr; } .funnel-breakdown-card { grid-template-columns:1fr; } .funnel-visual-panel { padding:.85rem; } .large-donut { width:180px; height:180px; } .donut-inner { width:120px; height:120px; } .modal-content { padding:1.5rem; max-width:100%; } }
 @media (max-width:480px) { .filters-row { flex-direction:column; } .header-title-block h1 { font-size:1.8rem; } .stat-card { padding:1.2rem; } .modal-overlay { padding:12px; } .modal-content { padding:1.15rem; border-radius:22px; } .modal-header h2 { font-size:1.4rem; } .funnel-breakdown-card { padding:1rem; border-radius:18px; } .legend-item { padding:12px 14px; border-radius:14px; } }
+
+/* ── SLOW FADE-IN: HEADER, SEARCH ── */
+@keyframes smoothFadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.statistics-page-header {
+    opacity: 0;
+    animation: smoothFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.05s;
+}
+
+.controls-section {
+    opacity: 0;
+    animation: smoothFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.3s;
+}
+
+/* ── SKELETON GRID ── */
+.loading-skeleton-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.loading-skeleton-grid.hidden {
+    display: none !important;
+}
+
+/* ── SKELETON CARD ENTRY KEYFRAMES ── */
+@keyframes statSkelFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── REVISED FLUID SHIMMER BEAM KEYFRAMES ── */
+@keyframes statShimmer {
+    0% {
+        background-position: 
+            -200px 0, 
+            0 0, 56px 6px, 56px 28px;
+    }
+    100% {
+        background-position: 
+            calc(100% + 200px) 0, 
+            0 0, 56px 6px, 56px 28px;
+    }
+}
+
+@keyframes statShimmerDetails {
+    0% {
+        background-position: 
+            -200px 0,
+            0 0, 82px 0, 160px 0, 0 46px, 25% 46px, 50% 46px, 75% 46px, 0 86px, 25% 86px, 50% 86px;
+    }
+    100% {
+        background-position: 
+            calc(100% + 200px) 0,
+            0 0, 82px 0, 160px 0, 0 46px, 25% 46px, 50% 46px, 75% 46px, 0 86px, 25% 86px, 50% 86px;
+    }
+}
+
+/* ── SKELETON CONTAINER CARD ── */
+.stat-card-skeleton {
+    background-color: #ffffff !important;
+    border: 1px solid #e8e8e8 !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    min-height: 300px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    opacity: 0 !important;
+    transform: translateY(20px) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    animation: statSkelFadeUp 0.6s ease forwards !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Staggered load delays for cards */
+.stat-card-skeleton:nth-child(1) { animation-delay: 0.1s !important; }
+.stat-card-skeleton:nth-child(2) { animation-delay: 0.2s !important; }
+.stat-card-skeleton:nth-child(3) { animation-delay: 0.3s !important; }
+.stat-card-skeleton:nth-child(4) { animation-delay: 0.4s !important; }
+.stat-card-skeleton:nth-child(5) { animation-delay: 0.5s !important; }
+.stat-card-skeleton:nth-child(6) { animation-delay: 0.6s !important; }
+
+/* ── SKELETON LOGO + TITLE HEADER ROW ── */
+.stat-card-skeleton::before {
+    content: '' !important;
+    display: block !important;
+    width: 100% !important;
+    height: 44px !important;
+    flex-shrink: 0 !important;
+    margin-bottom: 20px !important;
+    background-image:
+        /* Moving White Shimmer Beam Overlap */
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent),
+        /* Layout Blocks */
+        linear-gradient(#ebebeb 44px, transparent 0),
+        linear-gradient(#ebebeb 16px, transparent 0),
+        linear-gradient(#ebebeb 11px, transparent 0) !important;
+    background-size:
+        200px 100%,
+        44px 44px,
+        160px 16px,
+        110px 11px !important;
+    background-position:
+        0 0,
+        56px 6px,
+        56px 28px !important;
+    background-repeat: no-repeat !important;
+    animation: statShimmer 1.6s infinite linear !important;
+}
+
+/* ── SKELETON BADGES + PILLS ROW ── */
+.stat-card-skeleton::after {
+    content: '' !important;
+    display: block !important;
+    flex: 1 !important;
+    min-height: 200px !important;
+    background-image:
+        /* Moving White Shimmer Beam Overlap */
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent),
+        /* Badges */
+        linear-gradient(#ebebeb 24px, transparent 0),
+        linear-gradient(#ebebeb 24px, transparent 0),
+        linear-gradient(#ebebeb 24px, transparent 0),
+        /* Info Pills */
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0),
+        linear-gradient(#ebebeb 28px, transparent 0) !important;
+    background-size:
+        200px 100%,
+        72px 24px,
+        68px 24px,
+        80px 24px,
+        22% 28px,
+        22% 28px,
+        22% 28px,
+        22% 28px,
+        22% 28px,
+        22% 28px,
+        22% 28px !important;
+    background-position:
+        0 0px,
+        82px 0px,
+        160px 0px,
+        0 46px,
+        25% 46px,
+        50% 46px,
+        75% 46px,
+        0 86px,
+        25% 86px,
+        50% 86px !important;
+    background-repeat: no-repeat !important;
+    animation: statShimmerDetails 1.6s infinite linear !important;
+}
+
+/* ── RESPONSIVE SKELETON GRID ADJUSTMENTS ── */
+@media (max-width: 1100px) {
+    .loading-skeleton-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .stat-card-skeleton:nth-child(5),
+    .stat-card-skeleton:nth-child(6) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 800px) {
+    .loading-skeleton-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .stat-card-skeleton:nth-child(n+3) {
+        display: none !important;
+    }
+}
+
+@media (max-width: 500px) {
+    .stat-card-skeleton:nth-child(n+2) {
+        display: none !important;
+    }
+}

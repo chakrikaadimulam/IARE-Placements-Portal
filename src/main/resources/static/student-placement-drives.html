@@ -27,7 +27,6 @@
                 <i data-lucide="search" class="search-icon"></i>
                 <input id="driveSearchInput" type="text" placeholder="Search by company name or drive title...">
             </div>
-
             <div class="filters-row">
                 <div class="select-wrap">
                     <select id="driveYearFilter">
@@ -58,8 +57,17 @@
         </div>
 
         <section>
-            <div id="studentDrivesLoading" class="loading-state">Loading placement drives...</div>
+            <div id="studentDrivesLoading" class="loading-skeleton-grid">
+                <article class="drive-card-skeleton"></article>
+                <article class="drive-card-skeleton"></article>
+                <article class="drive-card-skeleton"></article>
+                <article class="drive-card-skeleton"></article>
+                <article class="drive-card-skeleton"></article>
+                <article class="drive-card-skeleton"></article>
+            </div>
+
             <div id="studentDriveList" class="cards-grid"></div>
+
             <div id="studentDriveEmpty" class="empty-state hidden">
                 <i data-lucide="briefcase"></i>
                 <h3>No drives found</h3>
