@@ -197,6 +197,11 @@
         return '<div class="company-logo"></div>';
     }
 
+    function safeText(value, fallback) {
+        const normalized = String(value == null ? "" : value).trim();
+        return normalized || fallback;
+    }
+
     function setPageLoading(isLoading, initialLoad) {
         const loadingElement = document.getElementById("adminCompaniesLoading");
         const loadingHint = document.getElementById("adminCompaniesPageLoadingHint");
@@ -279,6 +284,11 @@
         emptyState.classList.add("hidden");
 
         const markup = companies.map(function (company) {
+            const companyType = safeText(company.companyType, "N/A");
+            const industry = safeText(company.industry, "N/A");
+            const headquarters = safeText(company.headquarters, "N/A");
+            const foundedYear = safeText(company.foundedYear, "N/A");
+            const description = safeText(company.description, "N/A");
             const websiteMarkup = company.websiteUrl
                 ? '<a class="company-link" href="' + escapeHtml(company.websiteUrl) + '" target="_blank" rel="noopener noreferrer">Visit Website</a>'
                 : '<span class="company-link">Website not provided</span>';
@@ -296,13 +306,13 @@
                 getStatusBadge(company.active),
                 "</div>",
                 '<div class="company-item-meta">',
-                '<span class="type-badge">' + escapeHtml(company.companyType) + "</span>",
-                '<span class="industry-badge">' + escapeHtml(company.industry) + "</span>",
-                (company.headquarters ? "<span>HQ: " + escapeHtml(company.headquarters) + "</span>" : ""),
-                (company.foundedYear ? "<span>Founded: " + escapeHtml(company.foundedYear) + "</span>" : ""),
+                '<span class="type-badge">' + escapeHtml(companyType) + "</span>",
+                '<span class="industry-badge">' + escapeHtml(industry) + "</span>",
+                "<span>HQ: " + escapeHtml(headquarters) + "</span>",
+                "<span>Founded: " + escapeHtml(foundedYear) + "</span>",
                 (company.createdAt ? "<span>Created: " + formatDate(company.createdAt) + "</span>" : ""),
                 "</div>",
-                '<p class="company-description">' + escapeHtml(company.description || "").replace(/\n/g, "<br>") + "</p>",
+                '<p class="company-description">' + escapeHtml(description).replace(/\n/g, "<br>") + "</p>",
                 '<div class="company-item-actions">',
                 '<button class="mini-btn toggle-company-btn" type="button" data-company-id="' + company.id + '" data-active="' + company.active + '">'
                     + (company.active ? "Disable" : "Enable") + "</button>",

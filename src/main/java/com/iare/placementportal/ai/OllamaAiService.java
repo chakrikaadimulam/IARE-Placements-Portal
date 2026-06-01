@@ -37,16 +37,28 @@ public class OllamaAiService {
     }
 
     public AiChatResponse chat(String studentMessage) {
-        LOGGER.info("AI request received: messageLength={}", studentMessage == null ? 0 : studentMessage.length());
+        try {
+            String answer = generateText(SYSTEM_PROMPT, studentMessage == null ? "" : studentMessage.trim(), 0.3, 120);
+            return new AiChatResponse(answer);
+        } catch (IllegalStateException exception) {
+            return new AiChatResponse(FALLBACK_MESSAGE);
+        }
+    }
+
+    public String generateText(String systemPrompt, String userPrompt, double temperature, int maxTokens) {
+        LOGGER.info("AI request received: systemLength={}, userLength={}",
+                systemPrompt == null ? 0 : systemPrompt.length(),
+                userPrompt == null ? 0 : userPrompt.length());
+
         try {
             OllamaChatRequest request = new OllamaChatRequest(
                     ollamaModel,
                     List.of(
-                            new OllamaChatRequest.Message("system", SYSTEM_PROMPT),
-                            new OllamaChatRequest.Message("user", studentMessage.trim())
+                            new OllamaChatRequest.Message("system", systemPrompt == null ? "" : systemPrompt.trim()),
+                            new OllamaChatRequest.Message("user", userPrompt == null ? "" : userPrompt.trim())
                     ),
                     false,
-                    new OllamaChatRequest.Options(0.3, 120)
+                    new OllamaChatRequest.Options(temperature, maxTokens)
             );
 
             HttpHeaders headers = new HttpHeaders();
@@ -63,13 +75,13 @@ public class OllamaAiService {
 
             String answer = extractAnswer(response.getBody());
             LOGGER.info("Ollama call success: answerLength={}", answer.length());
-            return new AiChatResponse(answer);
+            return answer;
         } catch (RestClientException exception) {
             LOGGER.warn("Ollama call failed with exception", exception);
-            return new AiChatResponse(FALLBACK_MESSAGE);
+            throw new IllegalStateException(FALLBACK_MESSAGE, exception);
         } catch (Exception exception) {
             LOGGER.error("Ollama call failed with exception", exception);
-            return new AiChatResponse(FALLBACK_MESSAGE);
+            throw new IllegalStateException(FALLBACK_MESSAGE, exception);
         }
     }
 

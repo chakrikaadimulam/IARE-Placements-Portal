@@ -28,12 +28,12 @@
     <div class="steps-bar" id="stepsBar">
         <div class="step-item">
             <div class="step-dot active" id="step1dot"><span>1</span></div>
-            <div class="step-label active" id="step1lbl">Upload Resume</div>
+            <div class="step-label active" id="step1lbl">Upload PDF</div>
         </div>
         <div class="step-line" id="line12"></div>
         <div class="step-item">
             <div class="step-dot" id="step2dot"><span>2</span></div>
-            <div class="step-label" id="step2lbl">Analysing</div>
+            <div class="step-label" id="step2lbl">AI Review</div>
         </div>
         <div class="step-line" id="line23"></div>
         <div class="step-item">
@@ -42,10 +42,10 @@
         </div>
     </div>
 
-    <div class="upload-section" id="uploadSection">
-        <p class="section-label">Input Method</p>
+    <section class="upload-section" id="uploadSection">
+        <p class="section-label">Upload Resume</p>
         <div class="upload-zone ripple-container" id="dropZone">
-            <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt">
+            <input type="file" id="fileInput" accept=".pdf,application/pdf">
             <div class="upload-zone-icon">
                 <svg viewBox="0 0 24 24">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -53,26 +53,17 @@
                     <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
             </div>
-            <h3 id="dropTitle">Drag and drop your resume here</h3>
+            <h3 id="dropTitle">Drag and drop your PDF resume here</h3>
             <p>or <strong>click to browse</strong> from your device</p>
             <div class="upload-formats">
-                <span class="format-pill">PDF</span>
-                <span class="format-pill">DOC</span>
-                <span class="format-pill">DOCX</span>
-                <span class="format-pill">TXT</span>
+                <span class="format-pill">PDF Only</span>
+                <span class="format-pill">Max 5 MB</span>
             </div>
         </div>
 
-        <div class="or-divider">or paste resume text below</div>
-
-        <div class="paste-wrap">
-            <div class="paste-label">
-                <svg viewBox="0 0 24 24">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"></path>
-                </svg>
-                Paste Resume Text
-            </div>
-            <textarea id="resumeText" placeholder="Paste the full text of your resume here - personal details, education, skills, experience, projects, certifications..."></textarea>
+        <div class="file-meta" id="fileMeta" hidden>
+            <span class="file-meta-name" id="fileName">resume.pdf</span>
+            <span class="file-meta-size" id="fileSize">0 KB</span>
         </div>
 
         <button class="analyse-btn ripple-container" id="analyseBtn" type="button" disabled>
@@ -84,21 +75,53 @@
         </button>
 
         <div class="error-state" id="errorState"></div>
-    </div>
+    </section>
 
-    <div class="loading-state" id="loadingSection">
-        <div class="loading-ring"></div>
-        <div class="loading-title">Analysing your resume...</div>
-        <div class="loading-sub">Our AI is reading every line carefully</div>
-        <div class="loading-steps">
-            <div class="loading-step" id="ls1"><span class="loading-step-dot"></span>Parsing structure and sections</div>
-            <div class="loading-step" id="ls2"><span class="loading-step-dot"></span>Evaluating skills and experience</div>
-            <div class="loading-step" id="ls3"><span class="loading-step-dot"></span>Checking keyword relevance</div>
-            <div class="loading-step" id="ls4"><span class="loading-step-dot"></span>Generating personalised insights</div>
+    <section class="loading-state" id="loadingSection" aria-hidden="true">
+        <div class="loading-copy">
+            <div class="loading-title">Analysing your resume...</div>
+            <div class="loading-sub">The AI reviewer is checking structure, ATS fit, skills, and project impact.</div>
         </div>
-    </div>
 
-    <div class="results-section" id="resultsSection">
+        <div class="loading-skeleton-grid">
+            <div class="skeleton-card skeleton-score-card">
+                <div class="skeleton skeleton-ring"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton skeleton-line skeleton-line-lg"></div>
+                    <div class="skeleton skeleton-line skeleton-line-md"></div>
+                    <div class="skeleton skeleton-line skeleton-line-sm"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-line skeleton-line-lg"></div>
+                <div class="skeleton skeleton-line skeleton-line-md"></div>
+                <div class="skeleton skeleton-line skeleton-line-sm"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-chip-row">
+                    <span class="skeleton skeleton-chip"></span>
+                    <span class="skeleton skeleton-chip"></span>
+                    <span class="skeleton skeleton-chip"></span>
+                </div>
+                <div class="skeleton skeleton-chip-row">
+                    <span class="skeleton skeleton-chip"></span>
+                    <span class="skeleton skeleton-chip"></span>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton-list">
+                    <div class="skeleton skeleton-line skeleton-line-lg"></div>
+                    <div class="skeleton skeleton-line skeleton-line-lg"></div>
+                    <div class="skeleton skeleton-line skeleton-line-md"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="results-section" id="resultsSection">
         <p class="section-label">Analysis Results</p>
 
         <div class="score-hero">
@@ -114,26 +137,67 @@
             </div>
             <div class="score-info">
                 <div class="score-grade" id="scoreGrade">-</div>
-                <div class="score-headline" id="scoreHeadline">-</div>
-                <div class="score-summary" id="scoreSummary">-</div>
+                <div class="score-headline">Resume Review Summary</div>
+                <div class="score-summary" id="summaryText">-</div>
             </div>
         </div>
 
-        <div class="subscores-grid" id="subscoresGrid"></div>
-        <div class="analysis-cols" id="analysisCols"></div>
+        <div class="results-grid">
+            <article class="result-card result-card-wide">
+                <div class="result-card-header">
+                    <h3>Short Summary</h3>
+                </div>
+                <p class="result-paragraph" id="shortSummaryText">-</p>
+            </article>
 
-        <div class="keywords-section">
-            <p class="section-label">Keyword Analysis</p>
-            <div class="keyword-legend">
-                <span class="legend-item"><span class="legend-dot legend-dot-green"></span>Present in resume</span>
-                <span class="legend-item"><span class="legend-dot legend-dot-red"></span>Missing / recommended</span>
-            </div>
-            <div class="keywords-wrap" id="keywordsWrap"></div>
-        </div>
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>Strengths</h3>
+                </div>
+                <ul class="result-list" id="strengthsList"></ul>
+            </article>
 
-        <div class="recs-section">
-            <p class="section-label">Actionable Recommendations</p>
-            <div class="rec-list" id="recList"></div>
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>Mistakes</h3>
+                </div>
+                <ul class="result-list" id="mistakesList"></ul>
+            </article>
+
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>Missing Skills</h3>
+                </div>
+                <div class="pill-wrap" id="missingSkillsList"></div>
+            </article>
+
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>ATS Suggestions</h3>
+                </div>
+                <ul class="result-list" id="atsSuggestionsList"></ul>
+            </article>
+
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>Project Improvements</h3>
+                </div>
+                <ul class="result-list" id="projectImprovementsList"></ul>
+            </article>
+
+            <article class="result-card">
+                <div class="result-card-header">
+                    <h3>Grammar & Formatting</h3>
+                </div>
+                <ul class="result-list" id="grammarFormattingIssuesList"></ul>
+            </article>
+
+            <article class="result-card result-card-wide">
+                <div class="result-card-header">
+                    <h3>Final Advice</h3>
+                </div>
+                <p class="result-paragraph" id="finalAdviceText">-</p>
+            </article>
         </div>
 
         <div class="actions-row">
@@ -153,7 +217,7 @@
                 Analyse Another
             </button>
         </div>
-    </div>
+    </section>
 </main>
 
 <script src="/js/auth.js"></script>

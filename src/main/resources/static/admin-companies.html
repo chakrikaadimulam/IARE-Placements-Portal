@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/admin-companies.css">
 </head>
-<body class="dashboard-body admin-theme" data-portal-role="admin">
+<body class="dashboard-body admin-theme admin-companies-page" data-portal-role="admin">
 <div class="dashboard-shell">
     <aside class="sidebar">
         <div>
@@ -41,8 +41,8 @@
             </div>
         </header>
 
-        <section class="admin-companies-layout">
-            <div class="admin-company-side-panel">
+        <section class="admin-companies-layout admin-companies-content">
+            <div class="admin-company-side-panel admin-company-form-panel">
                 <article class="admin-company-form-card">
                     <div class="company-section-head">
                         <span class="card-tag">Create Company</span>
@@ -149,23 +149,25 @@
                 </article>
             </div>
 
-            <article class="admin-company-list-card">
+            <article class="admin-company-list-card admin-company-list-panel">
                 <div class="company-section-head">
                     <span class="card-tag">Saved Companies</span>
                     <h2>Manage company records</h2>
                     <p>Review active and disabled recruiter profiles, update their details, or remove outdated records.</p>
                 </div>
 
-                <div id="adminCompaniesLoading" class="loading-state">Loading companies...</div>
-                <div id="adminCompanyList" class="company-list"></div>
-                <div id="adminCompanyEmpty" class="company-empty-state hidden">
-                    No companies added yet. Create your first company profile to get started.
-                </div>
-                <p id="adminCompaniesPageLoadingHint" class="company-pagination-info hidden" aria-live="polite">Loading next page...</p>
-                <div class="company-pagination">
-                    <button id="adminCompaniesPrevButton" type="button" class="secondary-btn">Previous</button>
-                    <span id="adminCompaniesPageInfo" class="company-pagination-info">Page 0 of 0</span>
-                    <button id="adminCompaniesNextButton" type="button" class="secondary-btn">Next</button>
+                <div class="admin-company-list-scroll">
+                    <div id="adminCompaniesLoading" class="loading-state">Loading companies...</div>
+                    <div id="adminCompanyList" class="company-list"></div>
+                    <div id="adminCompanyEmpty" class="company-empty-state hidden">
+                        No companies added yet. Create your first company profile to get started.
+                    </div>
+                    <p id="adminCompaniesPageLoadingHint" class="company-pagination-info hidden" aria-live="polite">Loading next page...</p>
+                    <div class="company-pagination">
+                        <button id="adminCompaniesPrevButton" type="button" class="secondary-btn">Previous</button>
+                        <span id="adminCompaniesPageInfo" class="company-pagination-info">Page 0 of 0</span>
+                        <button id="adminCompaniesNextButton" type="button" class="secondary-btn">Next</button>
+                    </div>
                 </div>
             </article>
         </section>

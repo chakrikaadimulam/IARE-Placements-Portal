@@ -140,7 +140,6 @@ public class CompanyService {
         return toResponse(companyRepository.save(company));
     }
 
-    @Transactional(readOnly = true)
     public CompanyExcelUploadResponse uploadCompaniesFromExcel(MultipartFile file) {
         validateExcelFile(file);
         LOGGER.info("Company Excel upload started: fileName='{}', size={} bytes",
@@ -166,9 +165,19 @@ public class CompanyService {
                         "Unable to detect the header row. Ensure the sheet contains a Company Name column.");
             }
 
-            Map<String, Integer> headerIndexMap = buildHeaderIndexMap(sheet.getRow(headerRowIndex));
+            Row headerRow = sheet.getRow(headerRowIndex);
+            Map<String, Integer> headerIndexMap = buildHeaderIndexMap(headerRow);
+            LOGGER.info("Company upload header row {} raw headers: {}", headerRowIndex + 1, extractRawHeaders(headerRow));
             if (findHeaderIndex(headerIndexMap, "Company Name") == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Header not mapped: Company Name");
+            }
+            if (findFirstHeaderIndex(headerIndexMap, "Company Description", "Description", "About Company") == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Description header not found. Expected one of: Company Description, Description, About Company.");
+            }
+            if (findFirstHeaderIndex(headerIndexMap, "Founded Year", "Founded", "FoundedYear", "Year Founded") == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Founded year header not found. Expected one of: Founded Year, Founded, FoundedYear, Year Founded.");
             }
 
             for (int rowIndex = headerRowIndex + 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -251,7 +260,19 @@ public class CompanyService {
             return null;
         }
         String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        String normalized = trimmed.toLowerCase(Locale.ENGLISH);
+        if ("-".equals(trimmed)
+                || "n/a".equals(normalized)
+                || "na".equals(normalized)
+                || "null".equals(normalized)) {
+            return null;
+        }
+
+        return trimmed;
     }
 
     private void validateUrl(String value, String message) {
@@ -353,20 +374,33 @@ public class CompanyService {
     }
 
     private CompanyRowData readCompanyRow(Row row, Map<String, Integer> headerIndexMap) {
-        String companyName = normalizeOptional(readString(row, headerIndexMap, "Company Name"));
+        String companyName = normalizeOptional(readStringByHeaders(row, headerIndexMap, "Company Name"));
         if (companyName == null) {
             throw new RowValidationException("Company Name is required.");
         }
 
-        String logoUrl = normalizeOptional(readString(row, headerIndexMap, "Company Logo URL"));
-        String websiteUrl = normalizeOptional(readString(row, headerIndexMap, "Company Website URL"));
-        String companyType = defaultString(normalizeOptional(readString(row, headerIndexMap, "Company Type")));
-        String industry = defaultString(normalizeOptional(readString(row, headerIndexMap, "Industry")));
-        String headquarters = normalizeOptional(readString(row, headerIndexMap, "Headquarters"));
-        Integer foundedYear = parseFoundedYear(row, headerIndexMap);
-        String description = defaultString(normalizeOptional(readString(row, headerIndexMap, "Company Description")));
+        String logoUrl = normalizeOptional(readStringByHeaders(row, headerIndexMap, "Company Logo URL"));
+        String websiteUrl = normalizeOptional(readStringByHeaders(row, headerIndexMap, "Company Website URL"));
+        String companyType = defaultString(normalizeOptional(readStringByHeaders(row, headerIndexMap, "Company Type")));
+        String industry = defaultString(normalizeOptional(readStringByHeaders(row, headerIndexMap, "Industry")));
+        String headquarters = normalizeOptional(readStringByHeaders(row, headerIndexMap, "Headquarters"));
+        ParsedFoundedYear foundedYearData = parseFoundedYear(row, headerIndexMap);
+        String rawDescription = readStringByHeaders(
+                row,
+                headerIndexMap,
+                "Company Description",
+                "Description",
+                "About Company"
+        );
+        String description = normalizeOptional(rawDescription);
 
-        validateImportedValues(companyName, logoUrl, websiteUrl, foundedYear);
+        validateImportedValues(companyName, foundedYearData.value());
+        LOGGER.info("Excel company row read: companyName='{}', rawFoundedYear='{}', parsedFoundedYear={}, rawDescription='{}', parsedDescription='{}'",
+                companyName,
+                foundedYearData.rawValue(),
+                foundedYearData.value(),
+                rawDescription,
+                description);
 
         return new CompanyRowData(
                 companyName,
@@ -375,68 +409,152 @@ public class CompanyService {
                 companyType,
                 industry,
                 headquarters,
-                foundedYear,
+                foundedYearData.value(),
                 description
         );
     }
 
-    private void validateImportedValues(String companyName, String logoUrl, String websiteUrl, Integer foundedYear) {
+    private void validateImportedValues(String companyName, Integer foundedYear) {
         if (companyName == null) {
             throw new RowValidationException("Company Name is required.");
         }
         if (foundedYear != null && foundedYear > Year.now().getValue()) {
             throw new RowValidationException("Founded Year cannot be in the future.");
         }
-        validateUrl(logoUrl, "Company Logo URL must be a valid URL.");
-        validateUrl(websiteUrl, "Company Website URL must be a valid URL.");
     }
 
     private boolean persistCompanyRow(CompanyRowData rowData) {
         Boolean existing = requiresNewTransactionTemplate.execute(status -> {
-            Optional<Company> existingCompanyOptional = companyRepository.findByCompanyNameIgnoreCase(rowData.companyName());
+            Optional<Company> existingCompanyOptional = findExistingCompanyForUpload(rowData.companyName());
             Company company = existingCompanyOptional.orElseGet(Company::new);
             boolean companyExists = company.getId() != null;
 
-            company.setCompanyName(rowData.companyName());
-            company.setLogoUrl(rowData.logoUrl());
-            company.setWebsiteUrl(rowData.websiteUrl());
-            company.setCompanyType(rowData.companyType());
-            company.setIndustry(rowData.industry());
-            company.setHeadquarters(rowData.headquarters());
-            company.setFoundedYear(rowData.foundedYear());
-            company.setDescription(rowData.description());
-            company.setActive(true);
+            if (companyExists) {
+                String existingDescriptionBefore = company.getDescription();
+                Integer existingFoundedYearBefore = company.getFoundedYear();
+                LOGGER.info("Existing company found for upload: excelName='{}', matchedDbName='{}'",
+                        rowData.companyName(), company.getCompanyName());
+                if (rowData.foundedYear() != null) {
+                    company.setFoundedYear(rowData.foundedYear());
+                }
+                if (rowData.description() != null) {
+                    company.setDescription(rowData.description());
+                }
+                company.setActive(true);
+                LOGGER.info("Updating company: {}, excelDescription={}, excelFoundedYear={}, existingDescriptionBefore={}, existingFoundedYearBefore={}",
+                        company.getCompanyName(),
+                        rowData.description(),
+                        rowData.foundedYear(),
+                        existingDescriptionBefore,
+                        existingFoundedYearBefore);
+            } else {
+                LOGGER.info("Creating new company from upload: {}", rowData.companyName());
+                validateUrl(rowData.logoUrl(), "Company Logo URL must be a valid URL.");
+                validateUrl(rowData.websiteUrl(), "Company Website URL must be a valid URL.");
 
-            companyRepository.saveAndFlush(company);
+                company.setCompanyName(rowData.companyName());
+                company.setLogoUrl(rowData.logoUrl());
+                company.setWebsiteUrl(rowData.websiteUrl());
+                company.setCompanyType(rowData.companyType());
+                company.setIndustry(rowData.industry());
+                company.setHeadquarters(rowData.headquarters());
+                company.setFoundedYear(rowData.foundedYear());
+                company.setDescription(defaultString(rowData.description()));
+                company.setActive(true);
+            }
+
+            Company savedCompany = companyRepository.saveAndFlush(company);
+            Company reloadedCompany = companyRepository.findById(savedCompany.getId()).orElse(savedCompany);
+            LOGGER.info("Company upload save successful: id={}, companyName='{}', foundedYear={}, description={}, reloadedFoundedYear={}, reloadedDescription={}",
+                    savedCompany.getId(),
+                    savedCompany.getCompanyName(),
+                    savedCompany.getFoundedYear(),
+                    savedCompany.getDescription(),
+                    reloadedCompany.getFoundedYear(),
+                    reloadedCompany.getDescription());
             return companyExists;
         });
 
         return Boolean.TRUE.equals(existing);
     }
 
-    private Integer parseFoundedYear(Row row, Map<String, Integer> headerIndexMap) {
-        Integer cellIndex = findHeaderIndex(headerIndexMap, "Founded Year");
-        if (cellIndex == null) {
-            return null;
+    private Optional<Company> findExistingCompanyForUpload(String companyName) {
+        String normalizedName = normalizeOptional(companyName);
+        if (normalizedName == null) {
+            return Optional.empty();
         }
 
-        String rawValue = normalizeOptional(readCellAsString(row, cellIndex));
+        Optional<Company> exactMatch = companyRepository.findByCompanyNameIgnoreCase(normalizedName);
+        if (exactMatch.isPresent()) {
+            return exactMatch;
+        }
+
+        String canonicalInput = canonicalizeCompanyName(normalizedName);
+        List<Company> companies = companyRepository.findAll();
+
+        List<Company> canonicalMatches = companies.stream()
+                .filter(company -> canonicalizeCompanyName(company.getCompanyName()).equals(canonicalInput))
+                .toList();
+        if (canonicalMatches.size() == 1) {
+            return Optional.of(canonicalMatches.get(0));
+        }
+
+        List<Company> aliasMatches = companies.stream()
+                .filter(company -> {
+                    String canonicalCompanyName = canonicalizeCompanyName(company.getCompanyName());
+                    return canonicalCompanyName.contains(canonicalInput) || canonicalInput.contains(canonicalCompanyName);
+                })
+                .toList();
+        if (aliasMatches.size() == 1) {
+            return Optional.of(aliasMatches.get(0));
+        }
+
+        return Optional.empty();
+    }
+
+    private ParsedFoundedYear parseFoundedYear(Row row, Map<String, Integer> headerIndexMap) {
+        Integer cellIndex = findFirstHeaderIndex(
+                headerIndexMap,
+                "Founded Year",
+                "Founded",
+                "FoundedYear",
+                "Year Founded"
+        );
+        if (cellIndex == null) {
+            throw new RowValidationException("Founded year header not found.");
+        }
+
+        Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if (cell == null || cell.getCellType() == CellType.BLANK) {
+            return new ParsedFoundedYear("", null);
+        }
+
+        if (cell.getCellType() == CellType.NUMERIC) {
+            double numericValue = cell.getNumericCellValue();
+            if (numericValue % 1 != 0) {
+                throw new RowValidationException("Founded Year must be a valid whole number year.");
+            }
+            return new ParsedFoundedYear(DATA_FORMATTER.formatCellValue(cell).trim(), (int) numericValue);
+        }
+
+        String rawCellValue = readCellAsString(row, cellIndex);
+        String rawValue = normalizeOptional(rawCellValue);
         if (rawValue == null) {
-            return null;
+            return new ParsedFoundedYear(rawCellValue, null);
         }
 
         String digitsOnly = rawValue.replaceAll("[^0-9.]", "");
         if (digitsOnly.isEmpty()) {
-            throw new RowValidationException("Founded Year must be a valid number or text year.");
+            throw new RowValidationException("Founded year cell could not be parsed: " + rawValue);
         }
 
         try {
             if (digitsOnly.contains(".")) {
-                return (int) Double.parseDouble(digitsOnly);
+                return new ParsedFoundedYear(rawValue, (int) Double.parseDouble(digitsOnly));
             }
-            return Integer.parseInt(digitsOnly);
+            return new ParsedFoundedYear(rawValue, Integer.parseInt(digitsOnly));
         } catch (NumberFormatException exception) {
-            throw new RowValidationException("Founded Year must be a valid number or text year.");
+            throw new RowValidationException("Founded year cell could not be parsed: " + rawValue);
         }
     }
 
@@ -448,8 +566,36 @@ public class CompanyService {
         return readCellAsString(row, cellIndex);
     }
 
+    private String readStringByHeaders(Row row, Map<String, Integer> headerIndexMap, String... headerNames) {
+        Integer cellIndex = findFirstHeaderIndex(headerIndexMap, headerNames);
+        if (cellIndex == null) {
+            return "";
+        }
+        return readCellAsString(row, cellIndex);
+    }
+
     private Integer findHeaderIndex(Map<String, Integer> headerIndexMap, String headerName) {
         return headerIndexMap.get(normalizeHeader(headerName));
+    }
+
+    private Integer findFirstHeaderIndex(Map<String, Integer> headerIndexMap, String... headerNames) {
+        for (String headerName : headerNames) {
+            Integer cellIndex = findHeaderIndex(headerIndexMap, headerName);
+            if (cellIndex != null) {
+                return cellIndex;
+            }
+        }
+
+        for (Map.Entry<String, Integer> entry : headerIndexMap.entrySet()) {
+            String normalizedHeader = entry.getKey();
+            for (String headerName : headerNames) {
+                String normalizedTarget = normalizeHeader(headerName);
+                if (normalizedHeader.contains(normalizedTarget) || normalizedTarget.contains(normalizedHeader)) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
     }
 
     private String readCellAsString(Row row, Integer index) {
@@ -483,8 +629,31 @@ public class CompanyService {
                 .trim();
     }
 
+    private List<String> extractRawHeaders(Row headerRow) {
+        List<String> headers = new ArrayList<>();
+        if (headerRow == null) {
+            return headers;
+        }
+
+        for (Cell cell : headerRow) {
+            headers.add(DATA_FORMATTER.formatCellValue(cell));
+        }
+        return headers;
+    }
+
     private String defaultString(String value) {
         return value == null ? "" : value;
+    }
+
+    private String canonicalizeCompanyName(String value) {
+        String normalizedValue = normalizeOptional(value);
+        if (normalizedValue == null) {
+            return "";
+        }
+
+        return normalizedValue.toLowerCase(Locale.ENGLISH)
+                .replace("&", "and")
+                .replaceAll("[^a-z0-9]", "");
     }
 
     private String buildRowErrorMessage(RuntimeException exception) {
@@ -523,6 +692,12 @@ public class CompanyService {
             String headquarters,
             Integer foundedYear,
             String description
+    ) {
+    }
+
+    private record ParsedFoundedYear(
+            String rawValue,
+            Integer value
     ) {
     }
 
