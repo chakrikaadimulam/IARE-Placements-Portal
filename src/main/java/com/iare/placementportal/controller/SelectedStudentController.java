@@ -1,6 +1,8 @@
 package com.iare.placementportal.controller;
 
+import com.iare.placementportal.dto.PagedResponse;
 import com.iare.placementportal.dto.SelectedStudentRequest;
+import com.iare.placementportal.dto.SelectedStudentFilterOptionsResponse;
 import com.iare.placementportal.dto.SelectedStudentResponse;
 import com.iare.placementportal.service.SelectedStudentService;
 import jakarta.validation.Valid;
@@ -65,6 +67,22 @@ public class SelectedStudentController {
     @GetMapping("/api/student/selected-students")
     public List<SelectedStudentResponse> getActiveSelectedStudents() {
         return selectedStudentService.getActiveSelectedStudentsForStudents();
+    }
+
+    @GetMapping("/api/student/selected-students/paged")
+    public PagedResponse<SelectedStudentResponse> getActiveSelectedStudentsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "") String branch,
+            @RequestParam(defaultValue = "") String company
+    ) {
+        return selectedStudentService.getActiveSelectedStudentsPageForStudents(page, size, search, branch, company);
+    }
+
+    @GetMapping("/api/student/selected-students/filter-options")
+    public SelectedStudentFilterOptionsResponse getActiveSelectedStudentFilterOptions() {
+        return selectedStudentService.getActiveSelectedStudentFilterOptions();
     }
 
     @GetMapping("/api/student/selected-students/drive/{placementDriveId}")

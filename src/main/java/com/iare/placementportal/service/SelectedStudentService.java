@@ -2,6 +2,8 @@ package com.iare.placementportal.service;
 
 import com.iare.placementportal.dto.SelectedStudentRequest;
 import com.iare.placementportal.dto.SelectedStudentResponse;
+import com.iare.placementportal.dto.PagedResponse;
+import com.iare.placementportal.dto.SelectedStudentFilterOptionsResponse;
 import com.iare.placementportal.entity.Company;
 import com.iare.placementportal.entity.PlacementDrive;
 import com.iare.placementportal.entity.SelectedStudent;
@@ -10,6 +12,9 @@ import com.iare.placementportal.repository.SelectedStudentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,8 @@ import java.util.List;
 public class SelectedStudentService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SelectedStudentService.class);
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final SelectedStudentRepository selectedStudentRepository;
     private final PlacementDriveRepository placementDriveRepository;
@@ -74,6 +81,35 @@ public class SelectedStudentService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<SelectedStudentResponse> getActiveSelectedStudentsPageForStudents(int page,
+                                                                                           int size,
+                                                                                           String search,
+                                                                                           String branch,
+                                                                                           String company) {
+        Page<SelectedStudentResponse> resultPage = selectedStudentRepository.findActivePageForStudents(
+                        normalizeFilter(search),
+                        normalizeFilter(branch),
+                        normalizeFilter(company),
+                        PageRequest.of(
+                                sanitizePage(page),
+                                sanitizeSize(size),
+                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+                        )
+                )
+                .map(this::toResponse);
+
+        return PagedResponse.from(resultPage);
+    }
+
+    @Transactional(readOnly = true)
+    public SelectedStudentFilterOptionsResponse getActiveSelectedStudentFilterOptions() {
+        return new SelectedStudentFilterOptionsResponse(
+                selectedStudentRepository.findDistinctActiveBranches(),
+                selectedStudentRepository.findDistinctActiveCompanyNames()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -234,6 +270,21 @@ public class SelectedStudentService {
             current = current.getCause();
         }
         return current.getMessage();
+    }
+
+    private int sanitizePage(int page) {
+        return Math.max(0, page);
+    }
+
+    private int sanitizeSize(int size) {
+        if (size <= 0) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(size, MAX_PAGE_SIZE);
+    }
+
+    private String normalizeFilter(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private SelectedStudentResponse toResponse(SelectedStudent selectedStudent) {

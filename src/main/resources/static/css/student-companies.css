@@ -863,3 +863,90 @@ body.student-companies-page::after {
         transform: translateY(0);
     }
 }
+
+/* ========================================
+   SHINY EFFECT ONLY (NO SIZE CHANGES)
+   ======================================== */
+
+.company-logo,
+.resource-company-logo,
+.preparation-company-logo,
+.drive-company-logo,
+.stat-company-logo,
+.student-company-logo,
+.card-logo,
+.logo-container,
+#modalLogo {
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f8fafc 35%,
+        #ffffff 70%,
+        #eef2ff 100%
+    );
+
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+
+    border: 1px solid rgba(255,255,255,0.9);
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.08),
+        0 8px 24px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+
+    transition: all 0.3s ease;
+}
+
+.company-logo::before,
+.resource-company-logo::before,
+.preparation-company-logo::before,
+.drive-company-logo::before,
+.stat-company-logo::before,
+.student-company-logo::before,
+.card-logo::before,
+.logo-container::before,
+#modalLogo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 70%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.85),
+        transparent
+    );
+
+    transform: skewX(-25deg);
+    animation: logoShine 4s infinite;
+}
+
+.company-logo:hover,
+.resource-company-logo:hover,
+.preparation-company-logo:hover,
+.drive-company-logo:hover,
+.stat-company-logo:hover,
+.student-company-logo:hover,
+.card-logo:hover,
+.logo-container:hover,
+#modalLogo:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 10px 20px rgba(0,0,0,0.12),
+        0 16px 36px rgba(59,130,246,0.15);
+}
+
+@keyframes logoShine {
+    0% {
+        left: -120%;
+    }
+    100% {
+        left: 220%;
+    }
+}

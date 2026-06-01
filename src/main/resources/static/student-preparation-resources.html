@@ -46,10 +46,22 @@
         <div class="results-count">
             <span id="packCount">0</span> preparation packs found
         </div>
+        <div class="pagination-controls">
+            <button id="resourcesPrevButton" class="pagination-btn" type="button">Previous</button>
+            <span id="resourcesPageInfo" class="pagination-info">Page 0 of 0</span>
+            <button id="resourcesNextButton" class="pagination-btn" type="button">Next</button>
+        </div>
     </div>
 
     <section>
-        <div id="studentResourceLoading" class="loading-state">Loading preparation resources...</div>
+        <div id="studentResourceLoading" class="loading-skeleton-grid">
+            <article class="resource-card-skeleton"></article>
+            <article class="resource-card-skeleton"></article>
+            <article class="resource-card-skeleton"></article>
+            <article class="resource-card-skeleton"></article>
+            <article class="resource-card-skeleton"></article>
+            <article class="resource-card-skeleton"></article>
+        </div>
         <div id="roadmapGrid" class="cards-grid"></div>
         <div id="studentResourceEmpty" class="resource-empty-state hidden">
             No preparation resources are available right now.

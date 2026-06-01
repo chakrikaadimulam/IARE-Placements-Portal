@@ -59,13 +59,22 @@
             <div class="results-count">
                 <span id="expCount">0</span> experiences found
             </div>
+            <div class="pagination-controls">
+                <button id="experiencesPrevButton" class="pagination-btn" type="button">Previous</button>
+                <span id="experiencesPageInfo" class="pagination-info">Page 0 of 0</span>
+                <span id="experiencesInlineLoading" class="inline-loading hidden" aria-hidden="true"></span>
+                <button id="experiencesNextButton" class="pagination-btn" type="button">Next</button>
+            </div>
         </div>
 
         <section>
-            <div id="studentExperienceLoading" class="empty-state loading-state">
-                <i data-lucide="messages-square"></i>
-                <h3>Loading interview experiences...</h3>
-                <p>Please wait while we fetch experience records.</p>
+            <div id="studentExperienceLoading" class="loading-skeleton-grid">
+                <article class="exp-card-skeleton"></article>
+                <article class="exp-card-skeleton"></article>
+                <article class="exp-card-skeleton"></article>
+                <article class="exp-card-skeleton"></article>
+                <article class="exp-card-skeleton"></article>
+                <article class="exp-card-skeleton"></article>
             </div>
 
             <div class="cards-grid" id="expGrid"></div>

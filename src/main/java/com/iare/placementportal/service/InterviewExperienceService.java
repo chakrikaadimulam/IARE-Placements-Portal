@@ -2,11 +2,17 @@ package com.iare.placementportal.service;
 
 import com.iare.placementportal.dto.InterviewExperienceRequest;
 import com.iare.placementportal.dto.InterviewExperienceResponse;
+import com.iare.placementportal.dto.FilterOptionResponse;
+import com.iare.placementportal.dto.InterviewExperienceFilterOptionsResponse;
+import com.iare.placementportal.dto.PagedResponse;
 import com.iare.placementportal.entity.Company;
 import com.iare.placementportal.entity.InterviewExperience;
 import com.iare.placementportal.entity.PlacementDrive;
 import com.iare.placementportal.repository.InterviewExperienceRepository;
 import com.iare.placementportal.repository.PlacementDriveRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +29,8 @@ public class InterviewExperienceService {
 
     private static final Set<String> ALLOWED_DIFFICULTY_LEVELS = Set.of("Easy", "Medium", "Hard");
     private static final Set<String> ALLOWED_FINAL_RESULTS = Set.of("Selected", "Rejected", "Waiting", "Internship Offered");
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final InterviewExperienceRepository interviewExperienceRepository;
     private final PlacementDriveRepository placementDriveRepository;
@@ -57,6 +65,45 @@ public class InterviewExperienceService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<InterviewExperienceResponse> getActiveExperiencesPageForStudents(int page,
+                                                                                          int size,
+                                                                                          String search,
+                                                                                          Long placementDriveId,
+                                                                                          String difficultyLevel,
+                                                                                          String finalResult,
+                                                                                          Integer hiringYear) {
+        Page<InterviewExperienceResponse> resultPage = interviewExperienceRepository.findActivePageForStudents(
+                        normalizeFilter(search),
+                        placementDriveId,
+                        normalizeFilter(difficultyLevel),
+                        normalizeFilter(finalResult),
+                        hiringYear,
+                        PageRequest.of(
+                                sanitizePage(page),
+                                sanitizeSize(size),
+                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+                        )
+                )
+                .map(this::toResponse);
+
+        return PagedResponse.from(resultPage);
+    }
+
+    @Transactional(readOnly = true)
+    public InterviewExperienceFilterOptionsResponse getActiveExperienceFilterOptions() {
+        List<FilterOptionResponse> drives = interviewExperienceRepository.findDistinctActiveDriveOptions()
+                .stream()
+                .map(this::toDriveOption)
+                .toList();
+
+        return new InterviewExperienceFilterOptionsResponse(
+                drives,
+                interviewExperienceRepository.findDistinctActiveHiringYears(),
+                interviewExperienceRepository.findDistinctActiveFinalResults()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -163,6 +210,29 @@ public class InterviewExperienceService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private int sanitizePage(int page) {
+        return Math.max(0, page);
+    }
+
+    private int sanitizeSize(int size) {
+        if (size <= 0) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(size, MAX_PAGE_SIZE);
+    }
+
+    private String normalizeFilter(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private FilterOptionResponse toDriveOption(Object[] values) {
+        Long driveId = values[0] instanceof Number number ? number.longValue() : null;
+        String companyName = values[1] == null ? "Company" : values[1].toString();
+        String driveTitle = values[2] == null ? "Placement Drive" : values[2].toString();
+        String hiringYear = values[3] == null ? "N/A" : values[3].toString();
+        return new FilterOptionResponse(driveId, companyName + " - " + driveTitle + " (" + hiringYear + ")");
     }
 
     private InterviewExperienceResponse toResponse(InterviewExperience interviewExperience) {

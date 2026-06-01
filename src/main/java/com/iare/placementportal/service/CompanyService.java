@@ -71,6 +71,11 @@ public class CompanyService {
 
         Company company = new Company();
         mapRequestToEntity(request, company);
+        LOGGER.info("Company create requested: companyName='{}', incomingDescription='{}', finalDescription='{}', foundedYear={}",
+                request.companyName(),
+                request.description(),
+                company.getDescription(),
+                company.getFoundedYear());
 
         return toResponse(companyRepository.save(company));
     }
@@ -125,7 +130,17 @@ public class CompanyService {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A company with this name already exists.");
                 });
 
+        String existingDescriptionBefore = company.getDescription();
+        Integer existingFoundedYearBefore = company.getFoundedYear();
         mapRequestToEntity(request, company);
+        LOGGER.info("Company update requested: id={}, companyName='{}', incomingDescription='{}', existingDescriptionBefore='{}', finalDescription='{}', existingFoundedYearBefore={}, finalFoundedYear={}",
+                id,
+                request.companyName(),
+                request.description(),
+                existingDescriptionBefore,
+                company.getDescription(),
+                existingFoundedYearBefore,
+                company.getFoundedYear());
         return toResponse(companyRepository.save(company));
     }
 
@@ -237,6 +252,10 @@ public class CompanyService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Founded Year cannot be in the future.");
         }
 
+        if (normalizeOptional(request.description()) == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company Description is required.");
+        }
+
         validateUrl(request.logoUrl(), "Company Logo URL must be a valid URL.");
         validateUrl(request.websiteUrl(), "Company Website URL must be a valid URL.");
     }
@@ -249,7 +268,7 @@ public class CompanyService {
         company.setIndustry(request.industry().trim());
         company.setHeadquarters(normalizeOptional(request.headquarters()));
         company.setFoundedYear(request.foundedYear());
-        company.setDescription(request.description().trim());
+        company.setDescription(normalizeOptional(request.description()));
         if (company.getActive() == null) {
             company.setActive(true);
         }

@@ -660,3 +660,188 @@ body.student-preparation-resources-page {
         flex-direction: column;
     }
 }
+
+.pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--black);
+    border-radius: var(--radius-full);
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--gray-100);
+}
+
+.pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+.loading-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.resource-card-skeleton {
+    min-height: 220px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    background: linear-gradient(90deg, #f4f4f4 25%, #ffffff 50%, #f4f4f4 75%);
+    background-size: 200% 100%;
+    animation: resourceShimmer 1.4s infinite linear;
+}
+
+@keyframes resourceShimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@media (max-width: 1100px) {
+    .loading-skeleton-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 800px) {
+    .loading-skeleton-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ========================================
+   PREMIUM SHINY COMPANY LOGO
+   ======================================== */
+
+.company-logo,
+.resource-company-logo,
+.preparation-company-logo,
+.drive-company-logo,
+.stat-company-logo,
+.student-company-logo,
+.card-logo,
+.logo-container,
+#modalLogo {
+    width: 88px !important;
+    height: 88px !important;
+    min-width: 88px !important;
+    min-height: 88px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #f8fafc 35%,
+        #ffffff 70%,
+        #eef2ff 100%
+    );
+
+    border-radius: 16px;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    border: 1px solid rgba(255,255,255,0.9);
+
+    box-shadow:
+        0 4px 12px rgba(0,0,0,0.08),
+        0 8px 24px rgba(0,0,0,0.10),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.company-logo::before,
+.resource-company-logo::before,
+.preparation-company-logo::before,
+.drive-company-logo::before,
+.stat-company-logo::before,
+.student-company-logo::before,
+.card-logo::before,
+.logo-container::before,
+#modalLogo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 70%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.8),
+        transparent
+    );
+
+    transform: skewX(-25deg);
+    animation: logoShine 4s infinite;
+}
+
+.company-logo img,
+.resource-company-logo img,
+.preparation-company-logo img,
+.drive-company-logo img,
+.stat-company-logo img,
+.student-company-logo img,
+.card-logo img,
+.logo-container img,
+#modalLogo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+}
+
+.company-logo:hover,
+.resource-company-logo:hover,
+.preparation-company-logo:hover,
+.drive-company-logo:hover,
+.stat-company-logo:hover,
+.student-company-logo:hover,
+.card-logo:hover,
+.logo-container:hover,
+#modalLogo:hover {
+    transform: translateY(-3px) scale(1.05);
+
+    box-shadow:
+        0 10px 20px rgba(0,0,0,0.12),
+        0 16px 36px rgba(59,130,246,0.15);
+}
+
+@keyframes logoShine {
+    0% {
+        left: -120%;
+    }
+    100% {
+        left: 220%;
+    }
+}

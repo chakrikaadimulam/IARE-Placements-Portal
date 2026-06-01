@@ -23,6 +23,23 @@
     </header>
 
     <section>
+        <div class="results-header">
+            <div class="results-count">
+                <span id="noticeCount">0</span> notices found
+            </div>
+            <div class="pagination-controls">
+                <button id="noticesPrevButton" class="pagination-btn" type="button">Previous</button>
+                <span id="noticesPageInfo" class="pagination-info">Page 0 of 0</span>
+                <button id="noticesNextButton" class="pagination-btn" type="button">Next</button>
+            </div>
+        </div>
+        <div id="studentNoticesLoading" class="loading-skeleton-list">
+            <article class="notice-card-skeleton"></article>
+            <article class="notice-card-skeleton"></article>
+            <article class="notice-card-skeleton"></article>
+            <article class="notice-card-skeleton"></article>
+            <article class="notice-card-skeleton"></article>
+        </div>
         <div id="studentNoticesList" class="notices-list"></div>
         <div id="studentNoticesEmpty" class="notice-empty-state hidden">
             No active notices right now. Please check again later.

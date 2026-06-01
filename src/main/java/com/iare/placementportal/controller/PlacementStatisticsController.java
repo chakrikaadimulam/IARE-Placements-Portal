@@ -1,5 +1,7 @@
 package com.iare.placementportal.controller;
 
+import com.iare.placementportal.dto.PagedResponse;
+import com.iare.placementportal.dto.PlacementStatisticsFilterOptionsResponse;
 import com.iare.placementportal.dto.PlacementStatisticsRequest;
 import com.iare.placementportal.dto.PlacementStatisticsResponse;
 import com.iare.placementportal.service.PlacementStatisticsService;
@@ -65,5 +67,21 @@ public class PlacementStatisticsController {
     @GetMapping("/api/student/placement-statistics")
     public List<PlacementStatisticsResponse> getActiveStatistics() {
         return placementStatisticsService.getActiveStatisticsForStudents();
+    }
+
+    @GetMapping("/api/student/placement-statistics/paged")
+    public PagedResponse<PlacementStatisticsResponse> getActiveStatisticsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Integer hiringYear,
+            @RequestParam(defaultValue = "") String driveStatus
+    ) {
+        return placementStatisticsService.getActiveStatisticsPageForStudents(page, size, search, hiringYear, driveStatus);
+    }
+
+    @GetMapping("/api/student/placement-statistics/filter-options")
+    public PlacementStatisticsFilterOptionsResponse getActiveStatisticsFilterOptions() {
+        return placementStatisticsService.getActiveStatisticsFilterOptions();
     }
 }

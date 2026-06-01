@@ -1,5 +1,6 @@
 (function () {
     const RESOURCES_API = "/api/student/preparation-resources";
+    const PAGE_SIZE = 20;
     const PDF_TYPES = [
         { key: "hasAptitudePdf", type: "aptitude", label: "Aptitude Material", modalId: "mc-aptitude" },
         { key: "hasCodingPdf", type: "coding", label: "Coding Material", modalId: "mc-coding" },
@@ -8,6 +9,7 @@
     ];
     let allResources = [];
     let filteredResources = [];
+    let currentPage = 0;
 
     async function fetchResources() {
         const result = await window.apiClient.cachedGet('preparation_resources_v1', RESOURCES_API, 120000);
@@ -132,6 +134,27 @@
         }
     }
 
+    function getTotalPages() {
+        return filteredResources.length ? Math.ceil(filteredResources.length / PAGE_SIZE) : 0;
+    }
+
+    function updatePaginationControls() {
+        const totalPages = getTotalPages();
+        const prevButton = document.getElementById("resourcesPrevButton");
+        const nextButton = document.getElementById("resourcesNextButton");
+        const pageInfo = document.getElementById("resourcesPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
+
     function renderResources(resources) {
         const loadingElement = document.getElementById("studentResourceLoading");
         const list = document.getElementById("roadmapGrid");
@@ -146,7 +169,8 @@
         }
 
         list.innerHTML = "";
-        updateResultsCount(resources.length);
+        updateResultsCount(filteredResources.length);
+        updatePaginationControls();
 
         if (!resources.length) {
             emptyState.classList.remove("hidden");
@@ -198,6 +222,11 @@
         initLucideIcons();
     }
 
+    function renderCurrentPage() {
+        const startIndex = currentPage * PAGE_SIZE;
+        renderResources(filteredResources.slice(startIndex, startIndex + PAGE_SIZE));
+    }
+
     function filterResources() {
         const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
         const driveValue = document.getElementById("driveFilter").value;
@@ -219,7 +248,8 @@
             return matchesSearch && matchesDrive && matchesYear;
         });
 
-        renderResources(filteredResources);
+        currentPage = 0;
+        renderCurrentPage();
     }
 
     function setupFilters() {
@@ -234,6 +264,29 @@
         });
     }
 
+    function setupPagination() {
+        const prevButton = document.getElementById("resourcesPrevButton");
+        const nextButton = document.getElementById("resourcesNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    currentPage -= 1;
+                    renderCurrentPage();
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < getTotalPages() - 1) {
+                    currentPage += 1;
+                    renderCurrentPage();
+                }
+            });
+        }
+    }
+
     function showError(message) {
         const loadingElement = document.getElementById("studentResourceLoading");
         const emptyState = document.getElementById("studentResourceEmpty");
@@ -246,6 +299,10 @@
             emptyState.textContent = message;
             emptyState.classList.remove("hidden");
         }
+
+        filteredResources = [];
+        updateResultsCount(0);
+        updatePaginationControls();
     }
 
     function addRipple(event, element) {
@@ -416,13 +473,15 @@
         initBackButton();
         initScrollProgress();
         bindModalAndActions();
+        setupPagination();
+        updatePaginationControls();
 
         try {
             allResources = await fetchResources();
             filteredResources = allResources.slice();
             populateFilters(allResources);
             setupFilters();
-            renderResources(allResources);
+            renderCurrentPage();
         } catch (error) {
             console.error("Failed to load preparation resources:", error);
             if (error && error.code === 'server_wake') {
@@ -433,7 +492,7 @@
                         allResources = await fetchResources();
                         filteredResources = allResources.slice();
                         populateFilters(allResources);
-                        renderResources(allResources);
+                        renderCurrentPage();
                     } catch (err) {
                         console.error("Failed to reload preparation resources after wake:", err);
                         showError('Unable to load resources. Please refresh.');

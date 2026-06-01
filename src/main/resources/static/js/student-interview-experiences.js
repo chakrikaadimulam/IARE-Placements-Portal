@@ -1,6 +1,35 @@
 (function () {
-    const EXPERIENCES_API = "/api/student/interview-experiences";
-    let allExperiences = [];
+    const EXPERIENCES_API = "/api/student/interview-experiences/paged";
+    const FILTER_OPTIONS_API = "/api/student/interview-experiences/filter-options";
+    const PAGE_SIZE = 20;
+    const SEARCH_DEBOUNCE_MS = 300;
+    const experiencesPageCache = new Map();
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let totalElements = 0;
+    let currentPageExperiences = [];
+    let currentSearch = "";
+    let currentPlacementDriveId = "";
+    let currentDifficultyLevel = "";
+    let currentFinalResult = "";
+    let currentHiringYear = "";
+    let isExperiencesLoading = false;
+    let activeExperiencesRequest = null;
+    let searchDebounceTimer = null;
+    let cardObserver = null;
+
+    function showElement(element) {
+        if (element) {
+            element.classList.remove("hidden");
+        }
+    }
+
+    function hideElement(element) {
+        if (element) {
+            element.classList.add("hidden");
+        }
+    }
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -16,9 +45,68 @@
         return normalized || fallback;
     }
 
-    async function fetchExperiences() {
-        const result = await window.apiClient.cachedGet('interview_experiences_v1', EXPERIENCES_API, 120000);
-        return Array.isArray(result.data) ? result.data : [];
+    async function fetchExperiences(page, signal) {
+        const params = new URLSearchParams({
+            page: String(Math.max(0, Number(page) || 0)),
+            size: String(PAGE_SIZE)
+        });
+
+        if (currentSearch) {
+            params.set("search", currentSearch);
+        }
+        if (currentPlacementDriveId) {
+            params.set("placementDriveId", currentPlacementDriveId);
+        }
+        if (currentDifficultyLevel) {
+            params.set("difficultyLevel", currentDifficultyLevel);
+        }
+        if (currentFinalResult) {
+            params.set("finalResult", currentFinalResult);
+        }
+        if (currentHiringYear) {
+            params.set("hiringYear", currentHiringYear);
+        }
+
+        const response = await fetch(EXPERIENCES_API + "?" + params.toString(), {
+            method: "GET",
+            signal,
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load interview experiences. Please try again.");
+        }
+
+        if (!payload || !Array.isArray(payload.content)) {
+            throw new Error("Invalid interview experiences response received.");
+        }
+
+        return payload;
+    }
+
+    async function fetchFilterOptions() {
+        const response = await fetch(FILTER_OPTIONS_API, {
+            method: "GET",
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load interview experience filters.");
+        }
+
+        return payload || { drives: [], hiringYears: [], finalResults: [] };
     }
 
     function formatDate(dateString) {
@@ -38,50 +126,54 @@
         });
     }
 
-    function getDifficultyBadgeClass(value) {
-        const normalized = safeText(value, "N/A").toLowerCase();
-        if (normalized === "easy") return "badge";
-        if (normalized === "medium") return "badge";
-        if (normalized === "hard") return "badge";
+    function getDifficultyBadgeClass() {
         return "badge";
     }
 
-    function getResultBadgeClass(value) {
+    function getResultBadgeClass() {
         return "badge";
     }
 
-    function populateSelect(id, values, defaultLabel) {
+    function populateSelect(id, values, defaultLabel, selectedValue, valueSelector, labelSelector) {
         const select = document.getElementById(id);
         if (!select) return;
 
-        const uniqueValues = Array.from(new Set(values.filter(Boolean))).sort();
         select.innerHTML = '<option value="">' + defaultLabel + "</option>";
 
-        uniqueValues.forEach(function (value) {
+        (values || []).forEach(function (value) {
             const option = document.createElement("option");
-            option.value = value;
-            option.textContent = value;
+            option.value = String(valueSelector ? valueSelector(value) : value);
+            option.textContent = String(labelSelector ? labelSelector(value) : value);
             select.appendChild(option);
         });
+
+        if (selectedValue) {
+            select.value = String(selectedValue);
+        }
+    }
+
+    function populateFilters(options) {
+        populateSelect("driveFilter", options.drives, "All Placement Drives", currentPlacementDriveId, function (option) {
+            return option.value;
+        }, function (option) {
+            return option.label;
+        });
+
+        populateSelect("yearFilter", options.hiringYears, "All Hiring Years", currentHiringYear);
+        populateSelect("resultFilter", options.finalResults, "All Final Results", currentFinalResult);
     }
 
     function getDriveLabel(experience) {
         return safeText(experience.companyName, "N/A") + " - " + safeText(experience.driveTitle, "N/A") + " (" + safeText(experience.hiringYear, "N/A") + ")";
     }
 
-    function populateFilters(experiences) {
-        populateSelect("driveFilter", experiences.map(getDriveLabel), "All Placement Drives");
-        populateSelect("yearFilter", experiences.map(function (experience) {
-            return safeText(experience.hiringYear, "");
-        }), "All Hiring Years");
-        populateSelect("resultFilter", experiences.map(function (experience) {
-            return safeText(experience.finalResult, "");
-        }), "All Final Results");
-    }
-
     function getCompanyLogoMarkup(experience) {
         if (experience.companyLogoUrl) {
-            return '<div class="company-logo"><img src="' + escapeHtml(experience.companyLogoUrl) + '" alt="' + escapeHtml(safeText(experience.companyName, "Company")) + '"></div>';
+            return [
+                '<div class="company-logo">',
+                '<img src="', escapeHtml(experience.companyLogoUrl), '" alt="', escapeHtml(safeText(experience.companyName, "Company")), '" loading="lazy" decoding="async" width="48" height="48">',
+                '</div>'
+            ].join("");
         }
 
         return '<div class="company-logo text-logo"><span>' + escapeHtml(safeText(experience.companyName, "C").charAt(0).toUpperCase()) + "</span></div>";
@@ -95,22 +187,50 @@
         return "https://ui-avatars.com/api/?name=" + encodeURIComponent(safeText(experience.studentName, "Student")) + "&background=0a0a0a&color=fff";
     }
 
-    function buildSearchText(experience) {
-        return [
-            safeText(experience.studentName, ""),
-            safeText(experience.companyName, ""),
-            safeText(experience.driveTitle, ""),
-            safeText(experience.roleOffered, ""),
-            safeText(experience.technicalTopics, ""),
-            safeText(experience.finalResult, ""),
-            safeText(experience.difficultyLevel, "")
-        ].join(" ").toLowerCase();
-    }
-
-    function updateExperienceCount(count) {
+    function updateExperienceCount() {
         const expCount = document.getElementById("expCount");
         if (expCount) {
-            expCount.textContent = String(count);
+            expCount.textContent = String(totalElements);
+        }
+    }
+
+    function hasActiveSearchOrFilters() {
+        return Boolean(currentSearch || currentPlacementDriveId || currentDifficultyLevel || currentFinalResult || currentHiringYear);
+    }
+
+    function updatePaginationControls() {
+        const prevButton = document.getElementById("experiencesPrevButton");
+        const nextButton = document.getElementById("experiencesNextButton");
+        const pageInfo = document.getElementById("experiencesPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = isExperiencesLoading || currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = isExperiencesLoading || totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
+
+    function setListLoading(isLoading, initialLoad) {
+        const loadingElement = document.getElementById("studentExperienceLoading");
+        const list = document.getElementById("expGrid");
+        const emptyState = document.getElementById("studentExperienceEmpty");
+        const inlineLoading = document.getElementById("experiencesInlineLoading");
+
+        if (loadingElement) {
+            loadingElement.classList.toggle("hidden", !(isLoading && initialLoad));
+        }
+        if (list) {
+            list.classList.toggle("hidden", Boolean(isLoading && initialLoad));
+        }
+        if (emptyState && isLoading) {
+            emptyState.classList.add("hidden");
+        }
+        if (inlineLoading) {
+            inlineLoading.classList.toggle("hidden", !(isLoading && !initialLoad));
         }
     }
 
@@ -119,25 +239,33 @@
         const list = document.getElementById("expGrid");
         const emptyState = document.getElementById("studentExperienceEmpty");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
-        }
+        hideElement(loadingElement);
         if (!list || !emptyState) {
             return;
         }
 
         list.innerHTML = "";
-        updateExperienceCount(experiences.length);
+        updateExperienceCount();
+        updatePaginationControls();
 
         if (!experiences.length) {
             list.classList.add("hidden");
             emptyState.classList.remove("hidden");
+            emptyState.innerHTML = [
+                '<i data-lucide="messages-square"></i>',
+                hasActiveSearchOrFilters() ? '<h3>No matching experiences found</h3>' : '<h3>No experiences found</h3>',
+                hasActiveSearchOrFilters()
+                    ? '<p>Try adjusting your search filters.</p>'
+                    : '<p>No interview experiences are available yet.</p>'
+            ].join("");
             initLucideIcons();
             return;
         }
 
         list.classList.remove("hidden");
         emptyState.classList.add("hidden");
+
+        const fragment = document.createDocumentFragment();
 
         experiences.forEach(function (experience) {
             const companyName = safeText(experience.companyName, "N/A");
@@ -169,25 +297,25 @@
                 '<div class="company-info">',
                 getCompanyLogoMarkup(experience),
                 '<div class="company-titles">',
-                "<h3>", escapeHtml(companyName), "</h3>",
-                "<p>", escapeHtml(driveTitle), " • ", escapeHtml(hiringYear), " • ", escapeHtml(hiringDate), "</p>",
-                "</div>",
-                "</div>",
-                "</div>",
+                '<h3>', escapeHtml(companyName), '</h3>',
+                '<p>', escapeHtml(driveTitle), ' • ', escapeHtml(hiringYear), ' • ', escapeHtml(hiringDate), '</p>',
+                '</div>',
+                '</div>',
+                '</div>',
                 '<div class="card-badges">',
-                '<span class="badge ', getResultBadgeClass(roleOffered), '">', escapeHtml(roleOffered), "</span>",
-                '<span class="badge ', getDifficultyBadgeClass(difficultyLevel), '">', escapeHtml(difficultyLevel), "</span>",
-                '<span class="badge ', getResultBadgeClass(finalResult), '">', escapeHtml(finalResult), "</span>",
-                "</div>",
+                '<span class="badge ', getResultBadgeClass(roleOffered), '">', escapeHtml(roleOffered), '</span>',
+                '<span class="badge ', getDifficultyBadgeClass(difficultyLevel), '">', escapeHtml(difficultyLevel), '</span>',
+                '<span class="badge ', getResultBadgeClass(finalResult), '">', escapeHtml(finalResult), '</span>',
+                '</div>',
                 '<div class="student-profile">',
-                '<div class="student-avatar"><img src="', escapeHtml(photoUrl), '" alt="', escapeHtml(studentName), '"></div>',
-                '<div class="student-details"><h4>', escapeHtml(studentName), "</h4><p>", escapeHtml(roleOffered), "</p></div>",
-                "</div>",
+                '<div class="student-avatar"><img src="', escapeHtml(photoUrl), '" alt="', escapeHtml(studentName), '" loading="lazy" decoding="async"></div>',
+                '<div class="student-details"><h4>', escapeHtml(studentName), '</h4><p>', escapeHtml(roleOffered), '</p></div>',
+                '</div>',
                 '<div class="exp-summary">',
-                "<p><strong>Drive:</strong> ", escapeHtml(getDriveLabel(experience)), "</p>",
-                "<p><strong>Rounds Faced:</strong> ", escapeHtml(roundsFaced), "</p>",
-                "<p><strong>Date:</strong> ", escapeHtml(experienceDate), "</p>",
-                "</div>"
+                '<p><strong>Drive:</strong> ', escapeHtml(getDriveLabel(experience)), '</p>',
+                '<p><strong>Rounds Faced:</strong> ', escapeHtml(roundsFaced), '</p>',
+                '<p><strong>Date:</strong> ', escapeHtml(experienceDate), '</p>',
+                '</div>'
             ].join("");
 
             card.addEventListener("mousedown", function (event) {
@@ -205,41 +333,171 @@
                 }
             });
 
-            list.appendChild(card);
+            fragment.appendChild(card);
         });
 
+        list.appendChild(fragment);
         initCardObserver();
         initLucideIcons();
     }
 
-    function filterExperiences() {
-        const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
-        const driveValue = document.getElementById("driveFilter").value;
-        const difficultyValue = document.getElementById("difficultyFilter").value;
-        const resultValue = document.getElementById("resultFilter").value;
-        const yearValue = document.getElementById("yearFilter").value;
+    function buildCacheKey(page) {
+        return [Number(page) || 0, PAGE_SIZE, currentSearch, currentPlacementDriveId, currentDifficultyLevel, currentFinalResult, currentHiringYear].join("|");
+    }
 
-        const filteredExperiences = allExperiences.filter(function (experience) {
-            const matchesSearch = !searchValue || buildSearchText(experience).includes(searchValue);
-            const matchesDrive = !driveValue || getDriveLabel(experience) === driveValue;
-            const matchesDifficulty = !difficultyValue || safeText(experience.difficultyLevel, "N/A") === difficultyValue;
-            const matchesResult = !resultValue || safeText(experience.finalResult, "N/A") === resultValue;
-            const matchesYear = !yearValue || safeText(experience.hiringYear, "N/A") === yearValue;
+    function storePageInCache(page, payload) {
+        experiencesPageCache.set(buildCacheKey(page), payload);
+    }
 
-            return matchesSearch && matchesDrive && matchesDifficulty && matchesResult && matchesYear;
-        });
+    function getCachedPage(page) {
+        return experiencesPageCache.get(buildCacheKey(page)) || null;
+    }
 
-        renderExperiences(filteredExperiences);
+    async function prefetchExperiencesPage(page) {
+        const safePage = Number(page) || 0;
+        if (safePage < 0 || safePage >= totalPages || getCachedPage(safePage)) {
+            return;
+        }
+
+        const controller = new AbortController();
+        try {
+            const payload = await fetchExperiences(safePage, controller.signal);
+            storePageInCache(safePage, payload);
+        } catch (error) {
+            console.error("Failed to prefetch interview experiences page:", safePage, error);
+        }
+    }
+
+    function applyPagePayload(payload) {
+        currentPage = Number(payload.page) || 0;
+        totalPages = Number(payload.totalPages) || 0;
+        totalElements = Number(payload.totalElements) || 0;
+        currentPageExperiences = Array.isArray(payload.content) ? payload.content : [];
+
+        renderExperiences(currentPageExperiences);
+        void prefetchExperiencesPage(currentPage + 1);
+    }
+
+    async function loadExperiences(page, options) {
+        options = options || {};
+        const safePage = Math.max(0, Number(page) || 0);
+        const initialLoad = Boolean(options.initialLoad);
+
+        if (isExperiencesLoading && !options.force) {
+            return;
+        }
+
+        const cachedPage = getCachedPage(safePage);
+        if (cachedPage) {
+            setListLoading(false, initialLoad);
+            applyPagePayload(cachedPage);
+            return;
+        }
+
+        if (activeExperiencesRequest) {
+            activeExperiencesRequest.abort();
+        }
+
+        activeExperiencesRequest = new AbortController();
+        isExperiencesLoading = true;
+        updatePaginationControls();
+        setListLoading(true, initialLoad);
+
+        try {
+            const payload = await fetchExperiences(safePage, activeExperiencesRequest.signal);
+            storePageInCache(safePage, payload);
+            applyPagePayload(payload);
+
+            if (!currentPageExperiences.length && currentPage > 0 && totalPages > 0) {
+                await loadExperiences(totalPages - 1, { force: true });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("Failed to load paginated interview experiences:", error);
+            totalPages = 0;
+            totalElements = 0;
+            currentPageExperiences = [];
+            updatePaginationControls();
+            showError("Unable to load interview experiences. Please try again.");
+        } finally {
+            isExperiencesLoading = false;
+            activeExperiencesRequest = null;
+            updatePaginationControls();
+            setListLoading(false, initialLoad);
+        }
     }
 
     function setupFilters() {
-        ["searchInput", "driveFilter", "difficultyFilter", "resultFilter", "yearFilter"].forEach(function (id) {
-            const element = document.getElementById(id);
-            if (!element) return;
+        const searchInput = document.getElementById("searchInput");
+        const driveFilter = document.getElementById("driveFilter");
+        const difficultyFilter = document.getElementById("difficultyFilter");
+        const resultFilter = document.getElementById("resultFilter");
+        const yearFilter = document.getElementById("yearFilter");
 
-            element.addEventListener("input", filterExperiences);
-            element.addEventListener("change", filterExperiences);
-        });
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const nextSearch = searchInput.value.trim();
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+                searchDebounceTimer = setTimeout(function () {
+                    currentSearch = nextSearch;
+                    loadExperiences(0, { initialLoad: false, force: true });
+                }, SEARCH_DEBOUNCE_MS);
+            });
+        }
+
+        if (driveFilter) {
+            driveFilter.addEventListener("change", function () {
+                currentPlacementDriveId = driveFilter.value;
+                loadExperiences(0, { initialLoad: false, force: true });
+            });
+        }
+
+        if (difficultyFilter) {
+            difficultyFilter.addEventListener("change", function () {
+                currentDifficultyLevel = difficultyFilter.value;
+                loadExperiences(0, { initialLoad: false, force: true });
+            });
+        }
+
+        if (resultFilter) {
+            resultFilter.addEventListener("change", function () {
+                currentFinalResult = resultFilter.value;
+                loadExperiences(0, { initialLoad: false, force: true });
+            });
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener("change", function () {
+                currentHiringYear = yearFilter.value;
+                loadExperiences(0, { initialLoad: false, force: true });
+            });
+        }
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById("experiencesPrevButton");
+        const nextButton = document.getElementById("experiencesNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    loadExperiences(currentPage - 1, { initialLoad: false });
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages - 1) {
+                    loadExperiences(currentPage + 1, { initialLoad: false });
+                }
+            });
+        }
     }
 
     function openModal(card) {
@@ -292,21 +550,29 @@
 
     function showError(message) {
         const loadingElement = document.getElementById("studentExperienceLoading");
+        const list = document.getElementById("expGrid");
         const emptyState = document.getElementById("studentExperienceEmpty");
+        const inlineLoading = document.getElementById("experiencesInlineLoading");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
+        hideElement(loadingElement);
+        hideElement(inlineLoading);
+        if (list) {
+            list.classList.add("hidden");
         }
         if (emptyState) {
             emptyState.innerHTML = [
                 '<i data-lucide="messages-square"></i>',
-                '<h3>No experiences found</h3>',
-                '<p>', escapeHtml(message || "Unable to load interview experiences right now."), '</p>'
+                '<h3>Unable to load interview experiences.</h3>',
+                '<p>', escapeHtml(message || "Please try again."), '</p>'
             ].join("");
             emptyState.classList.remove("hidden");
         }
 
-        updateExperienceCount(0);
+        totalPages = 0;
+        totalElements = 0;
+        currentPageExperiences = [];
+        updateExperienceCount();
+        updatePaginationControls();
         initLucideIcons();
     }
 
@@ -336,8 +602,6 @@
         }, { passive: true });
     }
 
-    let cardObserver = null;
-
     function initCardObserver() {
         const cards = document.querySelectorAll(".exp-card");
 
@@ -364,6 +628,7 @@
         }
 
         cards.forEach(function (card) {
+            cardObserver.unobserve(card);
             cardObserver.observe(card);
         });
     }
@@ -389,29 +654,23 @@
         initScrollProgress();
         setupBackButton();
         setupModal();
+        setupFilters();
+        setupPagination();
+        updatePaginationControls();
+        setListLoading(true, true);
 
         try {
-            allExperiences = await fetchExperiences();
-            populateFilters(allExperiences);
-            setupFilters();
-            renderExperiences(allExperiences);
-        } catch (error) {
-            if (error && error.code === 'server_wake') {
-                const loading = document.getElementById('studentExperienceLoading');
-                if (loading) loading.classList.remove('hidden');
-                setTimeout(async function () {
-                    try {
-                        allExperiences = await fetchExperiences();
-                        populateFilters(allExperiences);
-                        renderExperiences(allExperiences);
-                    } catch (err) {
-                        showError('Unable to load interview experiences. Please refresh.');
-                    }
-                }, 2000);
-                return;
-            }
+            const filterOptionsPromise = fetchFilterOptions()
+                .then(populateFilters)
+                .catch(function (error) {
+                    console.error("Failed to load interview experience filters:", error);
+                });
 
-            showError('Unable to load interview experiences. Please refresh.');
+            const firstPagePromise = loadExperiences(0, { initialLoad: true, force: true });
+            await Promise.all([filterOptionsPromise, firstPagePromise]);
+        } catch (error) {
+            console.error("Failed to initialize interview experiences page:", error);
+            showError("Unable to load interview experiences. Please try again.");
         }
     });
 })();

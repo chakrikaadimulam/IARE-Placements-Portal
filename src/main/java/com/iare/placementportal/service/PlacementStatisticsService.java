@@ -2,11 +2,16 @@ package com.iare.placementportal.service;
 
 import com.iare.placementportal.dto.PlacementStatisticsRequest;
 import com.iare.placementportal.dto.PlacementStatisticsResponse;
+import com.iare.placementportal.dto.PagedResponse;
+import com.iare.placementportal.dto.PlacementStatisticsFilterOptionsResponse;
 import com.iare.placementportal.entity.Company;
 import com.iare.placementportal.entity.PlacementDrive;
 import com.iare.placementportal.entity.PlacementStatistics;
 import com.iare.placementportal.repository.PlacementDriveRepository;
 import com.iare.placementportal.repository.PlacementStatisticsRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,8 @@ import java.util.List;
 @Service
 @Transactional
 public class PlacementStatisticsService {
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final PlacementStatisticsRepository placementStatisticsRepository;
     private final PlacementDriveRepository placementDriveRepository;
@@ -55,6 +62,34 @@ public class PlacementStatisticsService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<PlacementStatisticsResponse> getActiveStatisticsPageForStudents(int page,
+                                                                                         int size,
+                                                                                         String search,
+                                                                                         Integer hiringYear,
+                                                                                         String driveStatus) {
+        Page<PlacementStatisticsResponse> resultPage = placementStatisticsRepository.findActivePageForStudents(
+                        normalizeFilter(search),
+                        hiringYear,
+                        normalizeFilter(driveStatus),
+                        PageRequest.of(
+                                sanitizePage(page),
+                                sanitizeSize(size),
+                                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"))
+                        )
+                )
+                .map(this::toResponse);
+
+        return PagedResponse.from(resultPage);
+    }
+
+    @Transactional(readOnly = true)
+    public PlacementStatisticsFilterOptionsResponse getActiveStatisticsFilterOptions() {
+        return new PlacementStatisticsFilterOptionsResponse(
+                placementStatisticsRepository.findDistinctActiveHiringYears()
+        );
     }
 
     @Transactional(readOnly = true)
@@ -178,6 +213,21 @@ public class PlacementStatisticsService {
         if (value != null && value < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
+    }
+
+    private int sanitizePage(int page) {
+        return Math.max(0, page);
+    }
+
+    private int sanitizeSize(int size) {
+        if (size <= 0) {
+            return DEFAULT_PAGE_SIZE;
+        }
+        return Math.min(size, MAX_PAGE_SIZE);
+    }
+
+    private String normalizeFilter(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private PlacementStatisticsResponse toResponse(PlacementStatistics placementStatistics) {

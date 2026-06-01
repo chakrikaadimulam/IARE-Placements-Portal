@@ -1,7 +1,33 @@
 (function () {
-    const SELECTED_STUDENTS_API = "/api/student/selected-students";
-    let allStudents = [];
-    let visibleStudents = [];
+    const SELECTED_STUDENTS_API = "/api/student/selected-students/paged";
+    const FILTER_OPTIONS_API = "/api/student/selected-students/filter-options";
+    const PAGE_SIZE = 20;
+    const SEARCH_DEBOUNCE_MS = 300;
+    const selectedStudentsPageCache = new Map();
+
+    let currentPage = 0;
+    let totalPages = 0;
+    let totalElements = 0;
+    let currentPageStudents = [];
+    let currentSearch = "";
+    let currentBranch = "";
+    let currentCompany = "";
+    let isStudentsLoading = false;
+    let activeStudentsRequest = null;
+    let searchDebounceTimer = null;
+    let cardObserver = null;
+
+    function showElement(element) {
+        if (element) {
+            element.classList.remove("hidden");
+        }
+    }
+
+    function hideElement(element) {
+        if (element) {
+            element.classList.add("hidden");
+        }
+    }
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -22,9 +48,62 @@
         return normalized || "N/A";
     }
 
-    async function fetchSelectedStudents() {
-        const result = await window.apiClient.cachedGet('selected_students_v2', SELECTED_STUDENTS_API, 120000);
-        return Array.isArray(result.data) ? result.data : [];
+    async function fetchSelectedStudents(page, signal) {
+        const params = new URLSearchParams({
+            page: String(Math.max(0, Number(page) || 0)),
+            size: String(PAGE_SIZE)
+        });
+
+        if (currentSearch) {
+            params.set("search", currentSearch);
+        }
+        if (currentBranch) {
+            params.set("branch", currentBranch);
+        }
+        if (currentCompany) {
+            params.set("company", currentCompany);
+        }
+
+        const response = await fetch(SELECTED_STUDENTS_API + "?" + params.toString(), {
+            method: "GET",
+            signal,
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load selected students. Please try again.");
+        }
+
+        if (!payload || !Array.isArray(payload.content)) {
+            throw new Error("Invalid selected students response received.");
+        }
+
+        return payload;
+    }
+
+    async function fetchFilterOptions() {
+        const response = await fetch(FILTER_OPTIONS_API, {
+            method: "GET",
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load selected student filters.");
+        }
+
+        return payload || { branches: [], companies: [] };
     }
 
     function getStudentPhotoUrl(student) {
@@ -44,15 +123,17 @@
         return [
             '<div class="company-logo">',
             '<i data-lucide="building-2" style="color: var(--black); width: 24px; height: 24px;"></i>',
-            '</div>'
+            "</div>"
         ].join("");
     }
 
-    function populateSelect(id, values, fallbackLabel) {
-        const select = document.getElementById(id);
-        if (!select) return;
+    function populateSelect(selectId, values, fallbackLabel, selectedValue) {
+        const select = document.getElementById(selectId);
+        if (!select) {
+            return;
+        }
 
-        const uniqueValues = Array.from(new Set(values.filter(Boolean))).sort();
+        const uniqueValues = Array.from(new Set((values || []).filter(Boolean))).sort();
         select.innerHTML = '<option value="">' + fallbackLabel + "</option>";
 
         uniqueValues.forEach(function (value) {
@@ -61,44 +142,62 @@
             option.textContent = value;
             select.appendChild(option);
         });
+
+        if (selectedValue && uniqueValues.includes(selectedValue)) {
+            select.value = selectedValue;
+        }
     }
 
-    function populateFilters(students) {
-        populateSelect("branchFilter", students.map(function (student) {
-            return safeText(student.branch, "");
-        }), "All Branches");
-
-        populateSelect("companyFilter", students.map(function (student) {
-            return safeText(student.companyName, "");
-        }), "All Companies");
+    function populateFilters(options) {
+        populateSelect("branchFilter", options.branches, "All Branches", currentBranch);
+        populateSelect("companyFilter", options.companies, "All Companies", currentCompany);
     }
 
-    function buildStudentSearch(student) {
-        return [
-            safeText(student.studentName, ""),
-            safeText(student.rollNumber, ""),
-            safeText(student.companyName, ""),
-            safeText(student.driveTitle, ""),
-            safeText(student.branch, ""),
-            safeText(student.packageOffered, ""),
-            safeText(student.selectionYear, "")
-        ].join(" ").toLowerCase();
+    function updateStudentCount() {
+        const countElement = document.getElementById("studentCount");
+        if (countElement) {
+            countElement.textContent = String(totalElements);
+        }
     }
 
-    function applyFilters() {
-        const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
-        const branchValue = document.getElementById("branchFilter").value;
-        const companyValue = document.getElementById("companyFilter").value;
+    function hasActiveSearchOrFilters() {
+        return Boolean(currentSearch || currentBranch || currentCompany);
+    }
 
-        visibleStudents = allStudents.filter(function (student) {
-            const matchesQuery = !searchValue || buildStudentSearch(student).includes(searchValue);
-            const matchesBranch = !branchValue || safeText(student.branch, "N/A") === branchValue;
-            const matchesCompany = !companyValue || safeText(student.companyName, "N/A") === companyValue;
+    function updatePaginationControls() {
+        const prevButton = document.getElementById("studentsPrevButton");
+        const nextButton = document.getElementById("studentsNextButton");
+        const pageInfo = document.getElementById("studentsPageInfo");
 
-            return matchesQuery && matchesBranch && matchesCompany;
-        });
+        if (prevButton) {
+            prevButton.disabled = isStudentsLoading || currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = isStudentsLoading || totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
 
-        renderStudents(visibleStudents);
+    function setListLoading(isLoading, initialLoad) {
+        const loadingElement = document.getElementById("studentSelectedStudentsLoading");
+        const list = document.getElementById("studentsGrid");
+        const emptyState = document.getElementById("emptyState");
+        const inlineLoading = document.getElementById("studentsInlineLoading");
+
+        if (loadingElement) {
+            loadingElement.classList.toggle("hidden", !(isLoading && initialLoad));
+        }
+        if (list) {
+            list.classList.toggle("hidden", Boolean(isLoading && initialLoad));
+        }
+        if (emptyState && isLoading) {
+            emptyState.classList.add("hidden");
+        }
+        if (inlineLoading) {
+            inlineLoading.classList.toggle("hidden", !(isLoading && !initialLoad));
+        }
     }
 
     function renderStudents(students) {
@@ -106,26 +205,33 @@
         const studentsGrid = document.getElementById("studentsGrid");
         const emptyState = document.getElementById("emptyState");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
-        }
+        hideElement(loadingElement);
         if (!studentsGrid || !emptyState) {
             return;
         }
 
         studentsGrid.innerHTML = "";
+        updateStudentCount();
+        updatePaginationControls();
 
         if (!students.length) {
             studentsGrid.classList.add("hidden");
             emptyState.classList.remove("hidden");
-            if (window.lucide && typeof window.lucide.createIcons === "function") {
-                window.lucide.createIcons();
-            }
+            emptyState.innerHTML = [
+                '<i data-lucide="users-round"></i>',
+                hasActiveSearchOrFilters() ? '<h3>No matching students found</h3>' : '<h3>No students found</h3>',
+                hasActiveSearchOrFilters()
+                    ? '<p>Try adjusting your search or filters to find what you\'re looking for.</p>'
+                    : '<p>No selected student records are available yet.</p>'
+            ].join("");
+            initLucideIcons();
             return;
         }
 
         studentsGrid.classList.remove("hidden");
         emptyState.classList.add("hidden");
+
+        const fragment = document.createDocumentFragment();
 
         students.forEach(function (student) {
             const companyName = safeText(student.companyName, "N/A");
@@ -162,12 +268,10 @@
                 "</div>",
                 '<div class="status-badge">Active</div>',
                 "</div>",
-
                 '<div class="job-badges">',
                 '<span class="job-badge outline">', escapeHtml(offerType), "</span>",
                 '<span class="job-badge filled">', escapeHtml(packageOffered), "</span>",
                 "</div>",
-
                 '<div class="student-row">',
                 '<div class="student-avatar">',
                 '<img src="', escapeHtml(photoUrl), '" alt="', escapeHtml(studentName), '" loading="lazy" decoding="async" width="64" height="64" onerror="this.src=\'', escapeHtml(getAvatarFallbackUrl(student)), '\'">',
@@ -197,13 +301,100 @@
                 }
             });
 
-            studentsGrid.appendChild(card);
+            fragment.appendChild(card);
         });
 
+        studentsGrid.appendChild(fragment);
         initCardObserver();
+        initLucideIcons();
+    }
 
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
+    function buildCacheKey(page) {
+        return [Number(page) || 0, PAGE_SIZE, currentSearch, currentBranch, currentCompany].join("|");
+    }
+
+    function storePageInCache(page, payload) {
+        selectedStudentsPageCache.set(buildCacheKey(page), payload);
+    }
+
+    function getCachedPage(page) {
+        return selectedStudentsPageCache.get(buildCacheKey(page)) || null;
+    }
+
+    async function prefetchSelectedStudentsPage(page) {
+        const safePage = Number(page) || 0;
+        if (safePage < 0 || safePage >= totalPages || getCachedPage(safePage)) {
+            return;
+        }
+
+        const controller = new AbortController();
+        try {
+            const payload = await fetchSelectedStudents(safePage, controller.signal);
+            storePageInCache(safePage, payload);
+        } catch (error) {
+            console.error("Failed to prefetch selected students page:", safePage, error);
+        }
+    }
+
+    function applyPagePayload(payload) {
+        currentPage = Number(payload.page) || 0;
+        totalPages = Number(payload.totalPages) || 0;
+        totalElements = Number(payload.totalElements) || 0;
+        currentPageStudents = Array.isArray(payload.content) ? payload.content : [];
+
+        renderStudents(currentPageStudents);
+        void prefetchSelectedStudentsPage(currentPage + 1);
+    }
+
+    async function loadSelectedStudents(page, options) {
+        options = options || {};
+        const safePage = Math.max(0, Number(page) || 0);
+        const initialLoad = Boolean(options.initialLoad);
+
+        if (isStudentsLoading && !options.force) {
+            return;
+        }
+
+        const cachedPage = getCachedPage(safePage);
+        if (cachedPage) {
+            setListLoading(false, initialLoad);
+            applyPagePayload(cachedPage);
+            return;
+        }
+
+        if (activeStudentsRequest) {
+            activeStudentsRequest.abort();
+        }
+
+        activeStudentsRequest = new AbortController();
+        isStudentsLoading = true;
+        updatePaginationControls();
+        setListLoading(true, initialLoad);
+
+        try {
+            const payload = await fetchSelectedStudents(safePage, activeStudentsRequest.signal);
+            storePageInCache(safePage, payload);
+            applyPagePayload(payload);
+
+            if (!currentPageStudents.length && currentPage > 0 && totalPages > 0) {
+                await loadSelectedStudents(totalPages - 1, { force: true });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("Failed to load paginated selected students:", error);
+            totalPages = 0;
+            totalElements = 0;
+            currentPageStudents = [];
+            updatePaginationControls();
+            showError("Unable to load selected students. Please try again.");
+        } finally {
+            isStudentsLoading = false;
+            activeStudentsRequest = null;
+            updatePaginationControls();
+            setListLoading(false, initialLoad);
         }
     }
 
@@ -235,8 +426,6 @@
         }, { passive: true });
     }
 
-    let cardObserver = null;
-
     function initCardObserver() {
         const cards = document.querySelectorAll(".student-card");
 
@@ -263,6 +452,7 @@
         }
 
         cards.forEach(function (card) {
+            cardObserver.unobserve(card);
             cardObserver.observe(card);
         });
     }
@@ -279,10 +469,7 @@
         document.getElementById("modalPackage").textContent = card.dataset.package || "N/A";
         document.getElementById("modalYear").textContent = card.dataset.year || "N/A";
 
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-        }
-
+        initLucideIcons();
         modal.classList.add("active");
         document.body.style.overflow = "hidden";
     }
@@ -320,33 +507,83 @@
 
     function showError(message) {
         const loadingElement = document.getElementById("studentSelectedStudentsLoading");
+        const studentsGrid = document.getElementById("studentsGrid");
         const emptyState = document.getElementById("emptyState");
+        const inlineLoading = document.getElementById("studentsInlineLoading");
 
-        if (loadingElement) {
-            loadingElement.classList.add("hidden");
+        hideElement(loadingElement);
+        hideElement(inlineLoading);
+        if (studentsGrid) {
+            studentsGrid.classList.add("hidden");
         }
         if (emptyState) {
             emptyState.innerHTML = [
                 '<i data-lucide="users-round"></i>',
-                '<h3>No students found</h3>',
-                '<p>', escapeHtml(message || "Unable to load selected student records right now."), '</p>'
+                '<h3>Unable to load selected students.</h3>',
+                '<p>', escapeHtml(message || "Please try again."), '</p>'
             ].join("");
             emptyState.classList.remove("hidden");
         }
 
-        if (window.lucide && typeof window.lucide.createIcons === "function") {
-            window.lucide.createIcons();
-        }
+        totalPages = 0;
+        totalElements = 0;
+        updateStudentCount();
+        updatePaginationControls();
+        initLucideIcons();
     }
 
     function setupFilters() {
-        ["searchInput", "branchFilter", "companyFilter"].forEach(function (id) {
-            const element = document.getElementById(id);
-            if (!element) return;
+        const searchInput = document.getElementById("searchInput");
+        const branchFilter = document.getElementById("branchFilter");
+        const companyFilter = document.getElementById("companyFilter");
 
-            element.addEventListener("input", applyFilters);
-            element.addEventListener("change", applyFilters);
-        });
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const nextSearch = searchInput.value.trim();
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+                searchDebounceTimer = setTimeout(function () {
+                    currentSearch = nextSearch;
+                    loadSelectedStudents(0, { initialLoad: false, force: true });
+                }, SEARCH_DEBOUNCE_MS);
+            });
+        }
+
+        if (branchFilter) {
+            branchFilter.addEventListener("change", function () {
+                currentBranch = branchFilter.value;
+                loadSelectedStudents(0, { initialLoad: false, force: true });
+            });
+        }
+
+        if (companyFilter) {
+            companyFilter.addEventListener("change", function () {
+                currentCompany = companyFilter.value;
+                loadSelectedStudents(0, { initialLoad: false, force: true });
+            });
+        }
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById("studentsPrevButton");
+        const nextButton = document.getElementById("studentsNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    loadSelectedStudents(currentPage - 1, { initialLoad: false });
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages - 1) {
+                    loadSelectedStudents(currentPage + 1, { initialLoad: false });
+                }
+            });
+        }
     }
 
     function setupBackButton() {
@@ -370,31 +607,23 @@
         initScrollProgress();
         setupBackButton();
         setupModal();
+        setupFilters();
+        setupPagination();
+        updatePaginationControls();
+        setListLoading(true, true);
 
         try {
-            allStudents = await fetchSelectedStudents();
-            populateFilters(allStudents);
-            setupFilters();
-            applyFilters();
-        } catch (error) {
-            console.error("Failed to load selected students:", error);
-            if (error && error.code === 'server_wake') {
-                const loading = document.getElementById('studentSelectedStudentsLoading');
-                if (loading) loading.classList.remove('hidden');
-                setTimeout(async function () {
-                    try {
-                        allStudents = await fetchSelectedStudents();
-                        populateFilters(allStudents);
-                        applyFilters();
-                    } catch (err) {
-                        console.error("Failed to reload selected students after wake:", err);
-                        showError("Unable to load selected students. Please refresh.");
-                    }
-                }, 2000);
-                return;
-            }
+            const filterOptionsPromise = fetchFilterOptions()
+                .then(populateFilters)
+                .catch(function (error) {
+                    console.error("Failed to load selected student filters:", error);
+                });
 
-            showError("Unable to load selected students. Please refresh.");
+            const firstPagePromise = loadSelectedStudents(0, { initialLoad: true, force: true });
+            await Promise.all([filterOptionsPromise, firstPagePromise]);
+        } catch (error) {
+            console.error("Failed to initialize selected students page:", error);
+            showError("Unable to load selected students. Please try again.");
         }
     });
 })();

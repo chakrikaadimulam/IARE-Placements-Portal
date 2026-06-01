@@ -1,5 +1,8 @@
 (function () {
     const ACTIVE_NOTICES_API = "/api/student/notices/active";
+    const PAGE_SIZE = 20;
+    let allNotices = [];
+    let currentPage = 0;
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -62,7 +65,36 @@
         );
     }
 
+    function updateNoticeCount(count) {
+        const countElement = document.getElementById("noticeCount");
+        if (countElement) {
+            countElement.textContent = String(count);
+        }
+    }
+
+    function getTotalPages() {
+        return allNotices.length ? Math.ceil(allNotices.length / PAGE_SIZE) : 0;
+    }
+
+    function updatePaginationControls() {
+        const totalPages = getTotalPages();
+        const prevButton = document.getElementById("noticesPrevButton");
+        const nextButton = document.getElementById("noticesNextButton");
+        const pageInfo = document.getElementById("noticesPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
+
     function renderStudentNoticesPage(notices) {
+        const loadingElement = document.getElementById("studentNoticesLoading");
         const container = document.getElementById("studentNoticesList");
         const emptyState = document.getElementById("studentNoticesEmpty");
 
@@ -70,7 +102,13 @@
             return;
         }
 
+        if (loadingElement) {
+            loadingElement.classList.add("hidden");
+        }
+
         container.innerHTML = "";
+        updateNoticeCount(allNotices.length);
+        updatePaginationControls();
 
         if (!notices.length) {
             emptyState.classList.remove("hidden");
@@ -102,6 +140,11 @@
 
             container.appendChild(card);
         });
+    }
+
+    function renderCurrentNoticePage() {
+        const startIndex = currentPage * PAGE_SIZE;
+        renderStudentNoticesPage(allNotices.slice(startIndex, startIndex + PAGE_SIZE));
     }
 
     function renderDashboardPreview(notices) {
@@ -138,9 +181,13 @@
     }
 
     function showStudentError(message) {
+        const loadingElement = document.getElementById("studentNoticesLoading");
         const emptyState = document.getElementById("studentNoticesEmpty");
         const previewEmptyState = document.getElementById("studentDashboardNoticeEmpty");
 
+        if (loadingElement) {
+            loadingElement.classList.add("hidden");
+        }
         if (emptyState) {
             emptyState.textContent = message;
             emptyState.classList.remove("hidden");
@@ -150,6 +197,10 @@
             previewEmptyState.textContent = message;
             previewEmptyState.classList.remove("hidden");
         }
+
+        allNotices = [];
+        updateNoticeCount(0);
+        updatePaginationControls();
     }
 
     function addRipple(event, element) {
@@ -235,6 +286,33 @@
         }
     }
 
+    function setupPagination() {
+        const prevButton = document.getElementById("noticesPrevButton");
+        const nextButton = document.getElementById("noticesNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    currentPage -= 1;
+                    renderCurrentNoticePage();
+                    initNoticeCards();
+                    initLucideIcons();
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < getTotalPages() - 1) {
+                    currentPage += 1;
+                    renderCurrentNoticePage();
+                    initNoticeCards();
+                    initLucideIcons();
+                }
+            });
+        }
+    }
+
     function initLucideIcons() {
         if (window.lucide && typeof window.lucide.createIcons === "function") {
             window.lucide.createIcons();
@@ -253,11 +331,14 @@
 
         initBackButton();
         initScrollProgress();
+        setupPagination();
+        updatePaginationControls();
 
         try {
-            const notices = await fetchActiveNotices();
-            renderStudentNoticesPage(notices);
-            renderDashboardPreview(notices);
+            allNotices = await fetchActiveNotices();
+            currentPage = 0;
+            renderCurrentNoticePage();
+            renderDashboardPreview(allNotices);
             initLucideIcons();
             initNoticeCards();
         } catch (error) {
@@ -266,9 +347,10 @@
                 if (previewEmpty) previewEmpty.classList.remove('hidden');
                 setTimeout(async function () {
                     try {
-                        const notices = await fetchActiveNotices();
-                        renderStudentNoticesPage(notices);
-                        renderDashboardPreview(notices);
+                        allNotices = await fetchActiveNotices();
+                        currentPage = 0;
+                        renderCurrentNoticePage();
+                        renderDashboardPreview(allNotices);
                         initNoticeCards();
                     } catch (err) {
                         showStudentError('Unable to load notices. Please refresh.');

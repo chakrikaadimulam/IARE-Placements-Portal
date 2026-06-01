@@ -277,7 +277,118 @@ body.student-statistics-page { font-family:'DM Sans',sans-serif; background:var(
 }
 
 @media (max-width: 500px) {
-    .stat-card-skeleton:nth-child(n+2) {
+.stat-card-skeleton:nth-child(n+2) {
         display: none !important;
     }
 }
+
+.results-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:1rem;
+    margin-bottom:1.5rem;
+    flex-wrap:wrap;
+}
+
+.results-count {
+    font-size:1rem;
+    color:var(--gray-500);
+}
+
+.results-count span {
+    font-weight:700;
+    color:var(--black);
+}
+
+.pagination-controls {
+    display:inline-flex;
+    align-items:center;
+    gap:0.75rem;
+    flex-wrap:wrap;
+}
+
+.pagination-btn {
+    border:1px solid var(--gray-300);
+    background:var(--white);
+    color:var(--black);
+    border-radius:var(--radius-full);
+    padding:9px 16px;
+    font-size:0.9rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background:var(--gray-100);
+}
+
+.pagination-btn:disabled {
+    cursor:not-allowed;
+    opacity:0.5;
+}
+
+.pagination-info {
+    font-size:0.95rem;
+    color:var(--gray-700);
+    font-weight:600;
+}
+
+.inline-loading {
+    width:12px;
+    height:12px;
+    border-radius:9999px;
+    background:var(--black);
+    opacity:0.22;
+    animation:inlinePulse .9s ease-in-out infinite;
+}
+
+
+/* ========================================
+   LARGE COMPANY LOGO - PLACEMENT STATISTICS
+   ======================================== */
+
+.company-logo,
+.stat-company-logo,
+.statistics-company-logo,
+.card-logo,
+.logo-container {
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.company-logo img,
+.stat-company-logo img,
+.statistics-company-logo img,
+.card-logo img,
+.logo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+}
+
+@keyframes inlinePulse {
+    0%, 100% {
+        transform: scale(0.9);
+        opacity: 0.2;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.45;
+    }
+}
+
+

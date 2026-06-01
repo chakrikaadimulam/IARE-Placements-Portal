@@ -68,10 +68,14 @@ public class PreparationResourceService {
         PlacementDrive placementDrive = findDriveOrThrow(placementDriveId);
         PreparationResource preparationResource = new PreparationResource();
         mapBaseFields(preparationResource, placementDrive, resourceTitle, description);
+        LOGGER.info("Preparation resource create requested: driveId={}, resourceTitle='{}', incomingDescription='{}', finalDescription='{}'",
+                placementDriveId, resourceTitle, description, preparationResource.getDescription());
 
         uploadProvidedFiles(preparationResource, placementDrive, aptitudePdf, codingPdf, technicalPdf, hrPdf);
         try {
-            return toResponse(preparationResourceRepository.save(preparationResource));
+            PreparationResource savedResource = preparationResourceRepository.save(preparationResource);
+            LOGGER.info("Preparation resource create saved: id={}, description='{}'", savedResource.getId(), savedResource.getDescription());
+            return toResponse(savedResource);
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to save preparation resource metadata after Cloudinary upload for driveId={}.", placementDriveId, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -136,10 +140,15 @@ public class PreparationResourceService {
         PreparationResource preparationResource = findResourceOrThrow(id);
         PlacementDrive placementDrive = findDriveOrThrow(placementDriveId);
 
+        String existingDescriptionBefore = preparationResource.getDescription();
         mapBaseFields(preparationResource, placementDrive, resourceTitle, description);
+        LOGGER.info("Preparation resource update requested: id={}, driveId={}, resourceTitle='{}', incomingDescription='{}', existingDescriptionBefore='{}', finalDescription='{}'",
+                id, placementDriveId, resourceTitle, description, existingDescriptionBefore, preparationResource.getDescription());
         uploadProvidedFiles(preparationResource, placementDrive, aptitudePdf, codingPdf, technicalPdf, hrPdf);
         try {
-            return toResponse(preparationResourceRepository.save(preparationResource));
+            PreparationResource savedResource = preparationResourceRepository.save(preparationResource);
+            LOGGER.info("Preparation resource update saved: id={}, description='{}'", savedResource.getId(), savedResource.getDescription());
+            return toResponse(savedResource);
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to update preparation resource metadata for resourceId={} and driveId={}.", id, placementDriveId, exception);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -186,7 +195,10 @@ public class PreparationResourceService {
                                String description) {
         preparationResource.setPlacementDrive(placementDrive);
         preparationResource.setResourceTitle(resourceTitle.trim());
-        preparationResource.setDescription(normalizeOptional(description));
+        String normalizedDescription = normalizeOptional(description);
+        if (preparationResource.getId() == null || normalizedDescription != null) {
+            preparationResource.setDescription(normalizedDescription);
+        }
         if (preparationResource.getActive() == null) {
             preparationResource.setActive(true);
         }
@@ -360,7 +372,19 @@ public class PreparationResourceService {
             return null;
         }
         String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        String normalized = trimmed.toLowerCase(Locale.ENGLISH);
+        if ("-".equals(trimmed)
+                || "n/a".equals(normalized)
+                || "na".equals(normalized)
+                || "null".equals(normalized)) {
+            return null;
+        }
+
+        return trimmed;
     }
 
     private String prettifyLabel(String label) {

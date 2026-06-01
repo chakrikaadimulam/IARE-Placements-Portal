@@ -184,7 +184,12 @@ body.student-interview-experiences-page::after {
 }
 
 .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
 
 .results-count {
@@ -636,6 +641,102 @@ body.student-interview-experiences-page::after {
 
 @media (max-width: 500px) {
     .filters-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pagination-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--black);
+    border-radius: var(--radius-full);
+    padding: 9px 16px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--gray-100);
+}
+
+.pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-info {
+    font-size: 0.95rem;
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+.inline-loading {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: var(--black);
+    opacity: 0.22;
+    animation: inlinePulse 0.9s ease-in-out infinite;
+}
+
+.loading-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.loading-skeleton-grid.hidden {
+    display: none !important;
+}
+
+.exp-card-skeleton {
+    min-height: 260px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    background: linear-gradient(90deg, #f4f4f4 25%, #ffffff 50%, #f4f4f4 75%);
+    background-size: 200% 100%;
+    animation: experienceShimmer 1.4s infinite linear;
+}
+
+@keyframes experienceShimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+@keyframes inlinePulse {
+    0%, 100% {
+        transform: scale(0.9);
+        opacity: 0.2;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.45;
+    }
+}
+
+@media (max-width: 1100px) {
+    .loading-skeleton-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 800px) {
+    .loading-skeleton-grid {
         grid-template-columns: 1fr;
     }
 }

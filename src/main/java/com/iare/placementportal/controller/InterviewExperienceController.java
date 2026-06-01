@@ -1,7 +1,9 @@
 package com.iare.placementportal.controller;
 
+import com.iare.placementportal.dto.InterviewExperienceFilterOptionsResponse;
 import com.iare.placementportal.dto.InterviewExperienceRequest;
 import com.iare.placementportal.dto.InterviewExperienceResponse;
+import com.iare.placementportal.dto.PagedResponse;
 import com.iare.placementportal.service.InterviewExperienceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -65,6 +67,32 @@ public class InterviewExperienceController {
     @GetMapping("/api/student/interview-experiences")
     public List<InterviewExperienceResponse> getActiveExperiences() {
         return interviewExperienceService.getActiveExperiencesForStudents();
+    }
+
+    @GetMapping("/api/student/interview-experiences/paged")
+    public PagedResponse<InterviewExperienceResponse> getActiveExperiencesPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) Long placementDriveId,
+            @RequestParam(defaultValue = "") String difficultyLevel,
+            @RequestParam(defaultValue = "") String finalResult,
+            @RequestParam(required = false) Integer hiringYear
+    ) {
+        return interviewExperienceService.getActiveExperiencesPageForStudents(
+                page,
+                size,
+                search,
+                placementDriveId,
+                difficultyLevel,
+                finalResult,
+                hiringYear
+        );
+    }
+
+    @GetMapping("/api/student/interview-experiences/filter-options")
+    public InterviewExperienceFilterOptionsResponse getActiveExperienceFilterOptions() {
+        return interviewExperienceService.getActiveExperienceFilterOptions();
     }
 
     @GetMapping("/api/student/interview-experiences/drive/{placementDriveId}")

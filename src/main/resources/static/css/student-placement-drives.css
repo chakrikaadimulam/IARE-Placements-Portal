@@ -1358,3 +1358,38 @@ body.student-placement-drives-page {
     margin-bottom: 1.5rem;
     max-width: 100%;
 }
+
+
+/* ===== Larger Company Logo ===== */
+
+.drive-company-logo,
+.company-logo,
+.drive-logo,
+.card-logo {
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Logo Image */
+.drive-company-logo img,
+.company-logo img,
+.drive-logo img,
+.card-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+}
+
+

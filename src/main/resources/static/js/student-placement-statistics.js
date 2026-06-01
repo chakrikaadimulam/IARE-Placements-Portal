@@ -1,7 +1,33 @@
 (function () {
-    const STATISTICS_API = "/api/student/placement-statistics";
+    const STATISTICS_API = "/api/student/placement-statistics/paged";
+    const FILTER_OPTIONS_API = "/api/student/placement-statistics/filter-options";
+    const PAGE_SIZE = 20;
+    const SEARCH_DEBOUNCE_MS = 300;
+    const statisticsPageCache = new Map();
 
-    let allStatistics = [];
+    let currentPage = 0;
+    let totalPages = 0;
+    let totalElements = 0;
+    let currentPageStatistics = [];
+    let currentSearch = "";
+    let currentHiringYear = "";
+    let currentDriveStatus = "";
+    let isStatisticsLoading = false;
+    let activeStatisticsRequest = null;
+    let searchDebounceTimer = null;
+    let statisticsObserver = null;
+
+    function showElement(element) {
+        if (element) {
+            element.classList.remove("hidden");
+        }
+    }
+
+    function hideElement(element) {
+        if (element) {
+            element.classList.add("hidden");
+        }
+    }
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -12,9 +38,62 @@
             .replace(/'/g, "&#39;");
     }
 
-    async function fetchStatistics() {
-        const result = await window.apiClient.cachedGet('placement_statistics_v1', STATISTICS_API, 120000);
-        return Array.isArray(result.data) ? result.data : [];
+    async function fetchStatistics(page, signal) {
+        const params = new URLSearchParams({
+            page: String(Math.max(0, Number(page) || 0)),
+            size: String(PAGE_SIZE)
+        });
+
+        if (currentSearch) {
+            params.set("search", currentSearch);
+        }
+        if (currentHiringYear) {
+            params.set("hiringYear", currentHiringYear);
+        }
+        if (currentDriveStatus) {
+            params.set("driveStatus", currentDriveStatus);
+        }
+
+        const response = await fetch(STATISTICS_API + "?" + params.toString(), {
+            method: "GET",
+            signal,
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load placement statistics. Please try again.");
+        }
+
+        if (!payload || !Array.isArray(payload.content)) {
+            throw new Error("Invalid placement statistics response received.");
+        }
+
+        return payload;
+    }
+
+    async function fetchFilterOptions() {
+        const response = await fetch(FILTER_OPTIONS_API, {
+            method: "GET",
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const payload = await response.json().catch(function () {
+            return null;
+        });
+
+        if (!response.ok) {
+            throw new Error(payload && payload.message ? payload.message : "Unable to load placement statistics filters.");
+        }
+
+        return payload || { hiringYears: [] };
     }
 
     function formatDate(dateString) {
@@ -40,6 +119,33 @@
         return Number.isFinite(num) ? num : 0;
     }
 
+    function updateStatisticsCount() {
+        const countElement = document.getElementById("statisticsCount");
+        if (countElement) {
+            countElement.textContent = String(totalElements);
+        }
+    }
+
+    function hasActiveSearchOrFilters() {
+        return Boolean(currentSearch || currentHiringYear || currentDriveStatus);
+    }
+
+    function updatePaginationControls() {
+        const prevButton = document.getElementById("statisticsPrevButton");
+        const nextButton = document.getElementById("statisticsNextButton");
+        const pageInfo = document.getElementById("statisticsPageInfo");
+
+        if (prevButton) {
+            prevButton.disabled = isStatisticsLoading || currentPage <= 0;
+        }
+        if (nextButton) {
+            nextButton.disabled = isStatisticsLoading || totalPages === 0 || currentPage >= totalPages - 1;
+        }
+        if (pageInfo) {
+            pageInfo.textContent = "Page " + (totalPages === 0 ? 0 : currentPage + 1) + " of " + totalPages;
+        }
+    }
+
     function safePercentage(numerator, denominator) {
         numerator = safeNumber(numerator);
         denominator = safeNumber(denominator);
@@ -62,18 +168,18 @@
         const companyName = record.companyName || "Company";
 
         if (record.companyLogoUrl) {
-            return `
-                <div class="company-logo">
-                    <img src="${escapeHtml(record.companyLogoUrl)}" alt="${escapeHtml(companyName)} logo" loading="lazy" decoding="async" width="60" height="60">
-                </div>
-            `;
+            return [
+                '<div class="company-logo">',
+                '<img src="', escapeHtml(record.companyLogoUrl), '" alt="', escapeHtml(companyName), ' logo" loading="lazy" decoding="async" width="60" height="60">',
+                '</div>'
+            ].join("");
         }
 
-        return `
-            <div class="company-logo text-logo">
-                ${escapeHtml(companyName.charAt(0).toUpperCase())}
-            </div>
-        `;
+        return [
+            '<div class="company-logo text-logo">',
+            escapeHtml(companyName.charAt(0).toUpperCase()),
+            '</div>'
+        ].join("");
     }
 
     function buildDonutGradient(record) {
@@ -96,14 +202,13 @@
         const attendedEnd = shortlistedEnd + attendedOnlyPercent;
         const notAttendedEnd = attendedEnd + notAttendedPercent;
 
-        return `
-            conic-gradient(
-                #22c55e 0% ${selectedEnd}%,
-                #3b82f6 ${selectedEnd}% ${shortlistedEnd}%,
-                #f59e0b ${shortlistedEnd}% ${attendedEnd}%,
-                #94a3b8 ${attendedEnd}% ${notAttendedEnd}%
-            )
-        `;
+        return [
+            "conic-gradient(",
+            "#22c55e 0% ", selectedEnd, "%, ",
+            "#3b82f6 ", selectedEnd, "% ", shortlistedEnd, "%, ",
+            "#f59e0b ", shortlistedEnd, "% ", attendedEnd, "%, ",
+            "#94a3b8 ", attendedEnd, "% ", notAttendedEnd, "%)",
+        ].join("");
     }
 
     function renderCard(record, index) {
@@ -119,48 +224,44 @@
         card.tabIndex = 0;
         card.style.animationDelay = (0.05 * index) + "s";
 
-        card.innerHTML = `
-            <div class="mini-pie-indicator" style="background: ${buildDonutGradient(record)};"></div>
-
-            <div class="card-header">
-                <div class="company-info">
-                    ${getLogoMarkup(record)}
-                    <div class="company-titles">
-                        <h3>${escapeHtml(record.driveTitle || "Untitled Drive")}</h3>
-                        <p>
-                            ${escapeHtml(record.companyName || "Company unavailable")}
-                            &bull;
-                            ${escapeHtml(record.hiringYear || "Year unavailable")}
-                            &bull;
-                            ${escapeHtml(formatDate(record.hiringDate))}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="badges-row">
-                <span class="badge">${escapeHtml(record.companyType || "Company Type")}</span>
-                <span class="badge">${escapeHtml(record.industry || "Industry")}</span>
-                <span class="badge ${getStatusClass(record.driveStatus)}">${escapeHtml(record.driveStatus || "Closed")}</span>
-            </div>
-
-            <div class="stat-pills-container">
-                <div class="stat-pills">
-                    <span class="pill"><span class="pill-lbl">Applied:</span> <span class="pill-val">${escapeHtml(applied)}</span></span>
-                    <span class="pill"><span class="pill-lbl">Attended:</span> <span class="pill-val">${escapeHtml(attended)}</span></span>
-                    <span class="pill"><span class="pill-lbl">Shortlisted:</span> <span class="pill-val">${escapeHtml(shortlisted)}</span></span>
-                    <span class="pill"><span class="pill-lbl">Selected:</span> <span class="pill-val">${escapeHtml(selected)}</span></span>
-                </div>
-
-                <div class="stat-pills">
-                    <span class="pill"><span class="pill-lbl">Male:</span> <span class="pill-val">${escapeHtml(male)}</span></span>
-                    <span class="pill"><span class="pill-lbl">Female:</span> <span class="pill-val">${escapeHtml(female)}</span></span>
-                    <span class="pill"><span class="pill-lbl">High:</span> <span class="pill-val">${escapeHtml(packageText(record.highestPackage))}</span></span>
-                    <span class="pill"><span class="pill-lbl">Avg:</span> <span class="pill-val">${escapeHtml(packageText(record.averagePackage))}</span></span>
-                    <span class="pill"><span class="pill-lbl">Low:</span> <span class="pill-val">${escapeHtml(packageText(record.lowestPackage))}</span></span>
-                </div>
-            </div>
-        `;
+        card.innerHTML = [
+            '<div class="mini-pie-indicator" style="background: ', buildDonutGradient(record), ';"></div>',
+            '<div class="card-header">',
+            '<div class="company-info">',
+            getLogoMarkup(record),
+            '<div class="company-titles">',
+            '<h3>', escapeHtml(record.driveTitle || "Untitled Drive"), '</h3>',
+            '<p>',
+            escapeHtml(record.companyName || "Company unavailable"),
+            ' &bull; ',
+            escapeHtml(record.hiringYear || "Year unavailable"),
+            ' &bull; ',
+            escapeHtml(formatDate(record.hiringDate)),
+            '</p>',
+            '</div>',
+            '</div>',
+            '</div>',
+            '<div class="badges-row">',
+            '<span class="badge">', escapeHtml(record.companyType || "Company Type"), '</span>',
+            '<span class="badge">', escapeHtml(record.industry || "Industry"), '</span>',
+            '<span class="badge ', getStatusClass(record.driveStatus), '">', escapeHtml(record.driveStatus || "Closed"), '</span>',
+            '</div>',
+            '<div class="stat-pills-container">',
+            '<div class="stat-pills">',
+            '<span class="pill"><span class="pill-lbl">Applied:</span> <span class="pill-val">', escapeHtml(applied), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Attended:</span> <span class="pill-val">', escapeHtml(attended), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Shortlisted:</span> <span class="pill-val">', escapeHtml(shortlisted), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Selected:</span> <span class="pill-val">', escapeHtml(selected), '</span></span>',
+            '</div>',
+            '<div class="stat-pills">',
+            '<span class="pill"><span class="pill-lbl">Male:</span> <span class="pill-val">', escapeHtml(male), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Female:</span> <span class="pill-val">', escapeHtml(female), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">High:</span> <span class="pill-val">', escapeHtml(packageText(record.highestPackage)), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Avg:</span> <span class="pill-val">', escapeHtml(packageText(record.averagePackage)), '</span></span>',
+            '<span class="pill"><span class="pill-lbl">Low:</span> <span class="pill-val">', escapeHtml(packageText(record.lowestPackage)), '</span></span>',
+            '</div>',
+            '</div>'
+        ].join("");
 
         card.addEventListener("mousedown", function (event) {
             addRipple(event, card);
@@ -180,26 +281,57 @@
         return card;
     }
 
+    function setListLoading(isLoading, initialLoad) {
+        const loading = document.getElementById("studentStatisticsLoading");
+        const list = document.getElementById("studentStatisticsList");
+        const empty = document.getElementById("studentStatisticsEmpty");
+        const inlineLoading = document.getElementById("statisticsInlineLoading");
+
+        if (loading) {
+            loading.classList.toggle("hidden", !(isLoading && initialLoad));
+        }
+        if (list) {
+            list.classList.toggle("hidden", Boolean(isLoading && initialLoad));
+        }
+        if (empty && isLoading) {
+            empty.classList.add("hidden");
+        }
+        if (inlineLoading) {
+            inlineLoading.classList.toggle("hidden", !(isLoading && !initialLoad));
+        }
+    }
+
     function renderStatistics(records) {
         const loading = document.getElementById("studentStatisticsLoading");
         const list = document.getElementById("studentStatisticsList");
         const empty = document.getElementById("studentStatisticsEmpty");
 
-        if (loading) loading.classList.add("hidden");
-        if (!list) return;
-
-        list.innerHTML = "";
-
-        if (!records.length) {
-            if (empty) empty.classList.remove("hidden");
+        hideElement(loading);
+        if (!list || !empty) {
             return;
         }
 
-        if (empty) empty.classList.add("hidden");
+        list.innerHTML = "";
+        updateStatisticsCount();
+        updatePaginationControls();
 
+        if (!records.length) {
+            list.classList.add("hidden");
+            empty.classList.remove("hidden");
+            empty.innerHTML = hasActiveSearchOrFilters()
+                ? "No matching placement statistics found."
+                : "No placement statistics found.";
+            return;
+        }
+
+        list.classList.remove("hidden");
+        empty.classList.add("hidden");
+
+        const fragment = document.createDocumentFragment();
         records.forEach(function (record, index) {
-            list.appendChild(renderCard(record, index));
+            fragment.appendChild(renderCard(record, index));
         });
+        list.appendChild(fragment);
 
         observeCards();
 
@@ -208,22 +340,11 @@
         }
     }
 
-    function populateYearFilter(records) {
+    function populateYearFilter(options) {
         const yearFilter = document.getElementById("statisticsYearFilter");
         if (!yearFilter) return;
 
-        const years = Array.from(
-            new Set(
-                records
-                    .map(function (record) {
-                        return record.hiringYear;
-                    })
-                    .filter(Boolean)
-            )
-        ).sort(function (a, b) {
-            return Number(b) - Number(a);
-        });
-
+        const years = Array.isArray(options.hiringYears) ? options.hiringYears : [];
         yearFilter.innerHTML = '<option value="">All Hiring Years</option>';
 
         years.forEach(function (year) {
@@ -232,36 +353,99 @@
             option.textContent = String(year);
             yearFilter.appendChild(option);
         });
+
+        if (currentHiringYear && years.map(String).includes(String(currentHiringYear))) {
+            yearFilter.value = String(currentHiringYear);
+        }
     }
 
-    function filterStatistics() {
-        const searchInput = document.getElementById("statisticsSearchInput");
-        const yearFilter = document.getElementById("statisticsYearFilter");
-        const statusFilter = document.getElementById("statisticsStatusFilter");
+    function buildCacheKey(page) {
+        return [Number(page) || 0, PAGE_SIZE, currentSearch, currentHiringYear, currentDriveStatus].join("|");
+    }
 
-        const searchValue = searchInput ? searchInput.value.trim().toLowerCase() : "";
-        const yearValue = yearFilter ? yearFilter.value : "";
-        const statusValue = statusFilter ? statusFilter.value : "";
+    function storePageInCache(page, payload) {
+        statisticsPageCache.set(buildCacheKey(page), payload);
+    }
 
-        const filtered = allStatistics.filter(function (record) {
-            const companyName = String(record.companyName || "").toLowerCase();
-            const driveTitle = String(record.driveTitle || "").toLowerCase();
+    function getCachedPage(page) {
+        return statisticsPageCache.get(buildCacheKey(page)) || null;
+    }
 
-            const matchesSearch =
-                !searchValue ||
-                companyName.includes(searchValue) ||
-                driveTitle.includes(searchValue);
+    async function prefetchStatisticsPage(page) {
+        const safePage = Number(page) || 0;
+        if (safePage < 0 || safePage >= totalPages || getCachedPage(safePage)) {
+            return;
+        }
 
-            const matchesYear =
-                !yearValue || String(record.hiringYear || "") === yearValue;
+        const controller = new AbortController();
+        try {
+            const payload = await fetchStatistics(safePage, controller.signal);
+            storePageInCache(safePage, payload);
+        } catch (error) {
+            console.error("Failed to prefetch placement statistics page:", safePage, error);
+        }
+    }
 
-            const matchesStatus =
-                !statusValue || String(record.driveStatus || "") === statusValue;
+    function applyPagePayload(payload) {
+        currentPage = Number(payload.page) || 0;
+        totalPages = Number(payload.totalPages) || 0;
+        totalElements = Number(payload.totalElements) || 0;
+        currentPageStatistics = Array.isArray(payload.content) ? payload.content : [];
 
-            return matchesSearch && matchesYear && matchesStatus;
-        });
+        renderStatistics(currentPageStatistics);
+        void prefetchStatisticsPage(currentPage + 1);
+    }
 
-        renderStatistics(filtered);
+    async function loadStatistics(page, options) {
+        options = options || {};
+        const safePage = Math.max(0, Number(page) || 0);
+        const initialLoad = Boolean(options.initialLoad);
+
+        if (isStatisticsLoading && !options.force) {
+            return;
+        }
+
+        const cachedPage = getCachedPage(safePage);
+        if (cachedPage) {
+            setListLoading(false, initialLoad);
+            applyPagePayload(cachedPage);
+            return;
+        }
+
+        if (activeStatisticsRequest) {
+            activeStatisticsRequest.abort();
+        }
+
+        activeStatisticsRequest = new AbortController();
+        isStatisticsLoading = true;
+        updatePaginationControls();
+        setListLoading(true, initialLoad);
+
+        try {
+            const payload = await fetchStatistics(safePage, activeStatisticsRequest.signal);
+            storePageInCache(safePage, payload);
+            applyPagePayload(payload);
+
+            if (!currentPageStatistics.length && currentPage > 0 && totalPages > 0) {
+                await loadStatistics(totalPages - 1, { force: true });
+                return;
+            }
+        } catch (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+            console.error("Failed to load paginated placement statistics:", error);
+            totalPages = 0;
+            totalElements = 0;
+            currentPageStatistics = [];
+            updatePaginationControls();
+            showError("Unable to load placement statistics. Please try again.");
+        } finally {
+            isStatisticsLoading = false;
+            activeStatisticsRequest = null;
+            updatePaginationControls();
+            setListLoading(false, initialLoad);
+        }
     }
 
     function setupFilters() {
@@ -269,9 +453,53 @@
         const yearFilter = document.getElementById("statisticsYearFilter");
         const statusFilter = document.getElementById("statisticsStatusFilter");
 
-        if (searchInput) searchInput.addEventListener("input", filterStatistics);
-        if (yearFilter) yearFilter.addEventListener("change", filterStatistics);
-        if (statusFilter) statusFilter.addEventListener("change", filterStatistics);
+        if (searchInput) {
+            searchInput.addEventListener("input", function () {
+                const nextSearch = searchInput.value.trim();
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+                searchDebounceTimer = setTimeout(function () {
+                    currentSearch = nextSearch;
+                    loadStatistics(0, { initialLoad: false, force: true });
+                }, SEARCH_DEBOUNCE_MS);
+            });
+        }
+
+        if (yearFilter) {
+            yearFilter.addEventListener("change", function () {
+                currentHiringYear = yearFilter.value;
+                loadStatistics(0, { initialLoad: false, force: true });
+            });
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener("change", function () {
+                currentDriveStatus = statusFilter.value;
+                loadStatistics(0, { initialLoad: false, force: true });
+            });
+        }
+    }
+
+    function setupPagination() {
+        const prevButton = document.getElementById("statisticsPrevButton");
+        const nextButton = document.getElementById("statisticsNextButton");
+
+        if (prevButton) {
+            prevButton.addEventListener("click", function () {
+                if (currentPage > 0) {
+                    loadStatistics(currentPage - 1, { initialLoad: false });
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener("click", function () {
+                if (currentPage < totalPages - 1) {
+                    loadStatistics(currentPage + 1, { initialLoad: false });
+                }
+            });
+        }
     }
 
     function setupBackButton() {
@@ -279,33 +507,36 @@
         if (!backBtn) return;
 
         const params = new URLSearchParams(window.location.search);
-        const cameFromDashboardCard = params.get("from") === "dashboard-placement-card";
-
-        if (cameFromDashboardCard) {
+        if (params.get("from") === "dashboard-placement-card") {
             backBtn.href = "/student-dashboard#placement-statistics-card";
         }
     }
 
     function observeCards() {
+        const cards = document.querySelectorAll(".stat-card");
+
         if (!("IntersectionObserver" in window)) {
-            document.querySelectorAll(".stat-card").forEach(function (card) {
+            cards.forEach(function (card) {
                 card.classList.add("visible");
             });
             return;
         }
 
-        const observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add("visible");
-                }
+        if (!statisticsObserver) {
+            statisticsObserver = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                    }
+                });
+            }, {
+                threshold: 0.1
             });
-        }, {
-            threshold: 0.1
-        });
+        }
 
-        document.querySelectorAll(".stat-card").forEach(function (card) {
-            observer.observe(card);
+        cards.forEach(function (card) {
+            statisticsObserver.unobserve(card);
+            statisticsObserver.observe(card);
         });
     }
 
@@ -345,9 +576,7 @@
         setText("modalSub", "Detailed breakdown");
         setText(
             "modalDriveLabel",
-            (record.driveTitle || "Placement drive") +
-            " - " +
-            (record.companyName || "Company unavailable")
+            (record.driveTitle || "Placement drive") + " - " + (record.companyName || "Company unavailable")
         );
         setText("modalTotal", applied);
         setText("valSelected", selected + " (" + safePercentage(selected, applied) + "%)");
@@ -406,14 +635,25 @@
 
     function showError(message) {
         const loading = document.getElementById("studentStatisticsLoading");
+        const list = document.getElementById("studentStatisticsList");
         const empty = document.getElementById("studentStatisticsEmpty");
+        const inlineLoading = document.getElementById("statisticsInlineLoading");
 
-        if (loading) loading.classList.add("hidden");
-
+        hideElement(loading);
+        hideElement(inlineLoading);
+        if (list) {
+            list.classList.add("hidden");
+        }
         if (empty) {
             empty.textContent = message || "Unable to load placement statistics right now.";
             empty.classList.remove("hidden");
         }
+
+        totalPages = 0;
+        totalElements = 0;
+        currentPageStatistics = [];
+        updateStatisticsCount();
+        updatePaginationControls();
     }
 
     function checkStudentAuth() {
@@ -439,30 +679,22 @@
         setupFilters();
         setupBackButton();
         setupModal();
+        setupPagination();
+        updatePaginationControls();
+        setListLoading(true, true);
 
         try {
-            allStatistics = await fetchStatistics();
-            populateYearFilter(allStatistics);
-            renderStatistics(allStatistics);
-        } catch (error) {
-            console.error("Failed to load placement statistics:", error);
-            if (error && error.code === 'server_wake') {
-                const loading = document.getElementById('studentStatisticsLoading');
-                if (loading) loading.classList.remove('hidden');
-                setTimeout(async function () {
-                    try {
-                        allStatistics = await fetchStatistics();
-                        populateYearFilter(allStatistics);
-                        renderStatistics(allStatistics);
-                    } catch (err) {
-                        console.error("Failed to reload placement statistics after wake:", err);
-                        showError('Unable to load placement statistics. Please refresh.');
-                    }
-                }, 2000);
-                return;
-            }
+            const filterOptionsPromise = fetchFilterOptions()
+                .then(populateYearFilter)
+                .catch(function (error) {
+                    console.error("Failed to load placement statistics filters:", error);
+                });
 
-            showError('Unable to load placement statistics. Please refresh.');
+            const firstPagePromise = loadStatistics(0, { initialLoad: true, force: true });
+            await Promise.all([filterOptionsPromise, firstPagePromise]);
+        } catch (error) {
+            console.error("Failed to initialize placement statistics page:", error);
+            showError("Unable to load placement statistics. Please try again.");
         }
     });
 })();

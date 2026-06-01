@@ -42,10 +42,25 @@
         </section>
 
         <section class="cards-section" aria-label="Student Results">
-            <div id="studentSelectedStudentsLoading" class="empty-state loading-state">
-                <i data-lucide="users-round"></i>
-                <h3>Loading selected students...</h3>
-                <p>Please wait while we fetch placement records.</p>
+            <div class="results-header">
+                <div class="results-count">
+                    <span id="studentCount">0</span> selected students found
+                </div>
+                <div class="pagination-controls">
+                    <button id="studentsPrevButton" class="pagination-btn" type="button">Previous</button>
+                    <span id="studentsPageInfo" class="pagination-info">Page 0 of 0</span>
+                    <span id="studentsInlineLoading" class="inline-loading hidden" aria-hidden="true"></span>
+                    <button id="studentsNextButton" class="pagination-btn" type="button">Next</button>
+                </div>
+            </div>
+
+            <div id="studentSelectedStudentsLoading" class="loading-skeleton-grid">
+                <article class="student-card-skeleton"></article>
+                <article class="student-card-skeleton"></article>
+                <article class="student-card-skeleton"></article>
+                <article class="student-card-skeleton"></article>
+                <article class="student-card-skeleton"></article>
+                <article class="student-card-skeleton"></article>
             </div>
 
             <div class="cards-grid" id="studentsGrid"></div>
